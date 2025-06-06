@@ -21,7 +21,7 @@ class App {
     this.hookupEventListeners();
     if (this.isCRMPage) {
       Utility.injectScript(chrome.runtime.getURL('libraries/Sdk.Soap.min.js'));
-      Utility.injectScript(chrome.runtime.getURL('scripts/levelup.extension.ts'));
+      Utility.injectScript(chrome.runtime.getURL('scripts/levelup.extension.js'));
       Utility.enableExtension(true);
     } else {
       Utility.enableExtension(false);

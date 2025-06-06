@@ -9,7 +9,9 @@
   },
   "scripts": {
     "dev": "vite",
+    "prebuild": "esbuild app/scripts/levelup.extension.ts --bundle --outfile=app/scripts/levelup.extension.js --platform=browser --format=esm",
     "build": "vite build",
+    "postbuild": "rm app/scripts/levelup.extension.js",
     "lint": "eslint \"app/**/*.ts\"",
     "pack": "npm run build"
   },
