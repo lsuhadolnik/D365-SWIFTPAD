@@ -7,6 +7,8 @@ export interface Command {
 interface EntityInfo {
   logicalName: string;
   displayName: string;
+  primaryIdAttribute: string;
+  primaryNameAttribute: string;
 }
 
 enum Step {
@@ -57,13 +59,15 @@ async function loadEntityMetadata(force = false): Promise<EntityInfo[]> {
     entityMetadataPromise = Promise.resolve(JSON.parse(cached));
     return entityMetadataPromise;
   }
-  const url = `${window.Xrm?.Page?.context.getClientUrl()}/api/data/v9.1/EntityDefinitions?$select=LogicalName&$expand=DisplayName($select=UserLocalizedLabel)`;
+  const url = `${window.Xrm?.Page?.context.getClientUrl()}/api/data/v9.1/EntityDefinitions?$select=DisplayName,LogicalName,PrimaryIdAttribute,PrimaryNameAttribute`;
   entityMetadataPromise = fetch(url)
     .then((r) => r.json())
     .then((d) =>
       d.value.map((v: any) => ({
         logicalName: v.LogicalName,
         displayName: v.DisplayName?.UserLocalizedLabel?.Label || v.LogicalName,
+        primaryIdAttribute: v.PrimaryIdAttribute,
+        primaryNameAttribute: v.PrimaryNameAttribute,
       }))
     )
     .then((list: EntityInfo[]) => {
@@ -164,9 +168,8 @@ async function openSpotlight() {
     } else if (state === Step.OpenRecordEntity) {
       (filtered as EntityInfo[]).slice(0, 20).forEach((ent) => {
         const li = document.createElement('li');
-        li.innerHTML = `${ent.displayName} <code>${ent.logicalName}</code>`;
-        li.style.cssText =
-          'padding:6px 12px;cursor:pointer;border-radius:6px;font-size:14px;font-family:monospace;background:#fff;';
+        li.innerHTML = `${ent.displayName} <code style="background:#f0f0f0;padding:2px 4px;border-radius:4px;font-family:monospace;">${ent.logicalName}</code>`;
+        li.style.cssText = 'padding:6px 12px;cursor:pointer;border-radius:6px;font-size:14px;';
         li.addEventListener('mouseenter', () => select(li));
         li.addEventListener('click', () => {
           selectedEntity = ent.logicalName;
@@ -179,6 +182,24 @@ async function openSpotlight() {
         });
         list.append(li);
       });
+
+      const typed = input.value.trim();
+      if (typed && !metadata.some((m) => m.logicalName.toLowerCase() === typed.toLowerCase())) {
+        const li = document.createElement('li');
+        li.innerHTML = `Use <code style="background:#f0f0f0;padding:2px 4px;border-radius:4px;font-family:monospace;">${typed}</code>`;
+        li.style.cssText = 'padding:6px 12px;cursor:pointer;border-radius:6px;font-size:14px;color:#555;';
+        li.addEventListener('mouseenter', () => select(li));
+        li.addEventListener('click', () => {
+          selectedEntity = typed;
+          pills.push(typed);
+          state = Step.OpenRecordId;
+          input.value = '';
+          input.placeholder = 'Record GUID...';
+          list.innerHTML = '';
+          renderPills();
+        });
+        list.append(li);
+      }
     }
     select(list.firstElementChild as HTMLLIElement | null);
   }
