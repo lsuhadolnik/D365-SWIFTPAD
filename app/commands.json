@@ -46,197 +46,197 @@
   },
   {
     "id": "displayLogicalNames",
-    "category": "",
+    "category": "Forms",
     "title": "Logical Names"
   },
   {
     "id": "clearLogicalNames",
-    "category": "",
+    "category": "Forms",
     "title": "Clear Logical names"
   },
   {
     "id": "blurFields",
-    "category": "",
+    "category": "Forms",
     "title": "Blur Fields"
   },
   {
     "id": "resetBlur",
-    "category": "",
+    "category": "Forms",
     "title": "Reset Blur"
   },
   {
     "id": "godMode",
-    "category": "",
+    "category": "Forms",
     "title": "God Mode"
   },
   {
     "id": "allFields",
-    "category": "",
+    "category": "Forms",
     "title": "All Fields"
   },
   {
     "id": "highlightDirtyFields",
-    "category": "",
+    "category": "Forms",
     "title": "Changed fields"
   },
   {
     "id": "copyRecordUrl",
-    "category": "",
+    "category": "Forms",
     "title": "Record URL"
   },
   {
     "id": "copyRecordId",
-    "category": "",
+    "category": "Forms",
     "title": "Record Id"
   },
   {
     "id": "openRecordWebApi",
-    "category": "",
+    "category": "Forms",
     "title": "Open Record in Web API"
   },
   {
     "id": "refreshAllSubgrids",
-    "category": "",
+    "category": "Forms",
     "title": "Refresh all subgrids"
   },
   {
     "id": "populateMin",
-    "category": "",
+    "category": "Forms",
     "title": "Minimum values"
   },
   {
     "id": "optionSets",
-    "category": "",
+    "category": "Forms",
     "title": "Show Optionset values"
   },
   {
     "id": "cloneRecord",
-    "category": "",
+    "category": "Forms",
     "title": "Clone record"
   },
   {
     "id": "refresh",
-    "category": "",
+    "category": "Forms",
     "title": "Refresh + Autosave off"
   },
   {
     "id": "toggleTabs",
-    "category": "",
+    "category": "Forms",
     "title": "Toggle Tabs"
   },
   {
     "id": "workflows",
-    "category": "",
+    "category": "Forms",
     "title": "Processes &amp; Business Rules"
   },
   {
     "id": "formProperties",
-    "category": "",
+    "category": "Forms",
     "title": "Record Properties"
   },
   {
     "id": "openRecord",
-    "category": "",
+    "category": "Navigation",
     "title": "Open record by Id"
   },
   {
     "id": "newRecord",
-    "category": "",
+    "category": "Navigation",
     "title": "New record"
   },
   {
     "id": "openList",
-    "category": "",
+    "category": "Navigation",
     "title": "Open List"
   },
   {
     "id": "openSecurity",
-    "category": "",
+    "category": "Navigation",
     "title": "Security"
   },
   {
     "id": "openSystemJobs",
-    "category": "",
+    "category": "Navigation",
     "title": "System Jobs"
   },
   {
     "id": "openSolutions",
-    "category": "",
+    "category": "Navigation",
     "title": "Solutions"
   },
   {
     "id": "openProcesses",
-    "category": "",
+    "category": "Navigation",
     "title": "Processes"
   },
   {
     "id": "openMailboxes",
-    "category": "",
+    "category": "Navigation",
     "title": "Mailboxes"
   },
   {
     "id": "openMain",
-    "category": "",
+    "category": "Navigation",
     "title": "Open Main"
   },
   {
     "id": "openAdvFind",
-    "category": "",
+    "category": "Navigation",
     "title": "Advanced Find"
   },
   {
     "id": "mocaClient",
-    "category": "",
+    "category": "Navigation",
     "title": "Mobile Client"
   },
   {
     "id": "diagnostics",
-    "category": "",
+    "category": "Navigation",
     "title": "Performance Diag"
   },
   {
     "id": "perfCenter",
-    "category": "",
+    "category": "Navigation",
     "title": "Performance Center"
   },
   {
     "id": "instancePicker",
-    "category": "",
+    "category": "Navigation",
     "title": "Instance Picker"
   },
   {
     "id": "openPPAC",
-    "category": "",
+    "category": "Navigation",
     "title": "Power Platform Admin"
   },
   {
     "id": "solutionHistory",
-    "category": "",
+    "category": "Navigation",
     "title": "Solutions History"
   },
   {
     "id": "openGrid",
-    "category": "",
+    "category": "Grid",
     "title": "New window"
   },
   {
     "id": "quickFindFields",
-    "category": "",
+    "category": "quickFindFields",
     "title": "Quick Find fields"
   },
   {
     "id": "blurView",
-    "category": "",
+    "category": "Grid",
     "title": "Blur Fields"
   },
   {
     "id": "resetViewBlur",
-    "category": "",
+    "category": "Grid",
     "title": "Reset Blur"
   },
   {
     "id": "sendToFXB",
-    "category": "",
+    "category": "sendToFXB",
     "title": "Open View in FetchXML Builder"
   },
   {
