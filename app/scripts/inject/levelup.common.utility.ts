@@ -126,6 +126,8 @@ export class Utility {
       content: message,
     };
 
+    console.log('Levelup dispatching message', extensionMessage);
+
     const levelUpEvent = new CustomEvent('levelup', {
       detail: extensionMessage,
     });

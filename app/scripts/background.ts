@@ -14,10 +14,13 @@ chrome.runtime.onMessage.addListener(async function (
   sender: chrome.runtime.MessageSender,
   sendResponse
 ) {
+  console.log('Levelup background received', message);
   if (message.type === 'Page') {
     const c = message.category;
+    console.log('Levelup background processing category', c);
     switch (c) {
       case 'Settings':
+        console.log('Opening organisation details');
         content = message.content;
         chrome.tabs.create({
           url: `/pages/organisationdetails.html`,
@@ -28,39 +31,46 @@ chrome.runtime.onMessage.addListener(async function (
       case 'quickFindFields':
       case 'entityMetadata':
       case 'environment':
+        console.log('Opening grid page for', c);
         content = message.content;
         chrome.tabs.create({
           url: `/pages/grid.html`,
         });
         break;
       case 'workflows':
+        console.log('Opening processes page');
         content = message.content;
         chrome.tabs.create({
           url: `/pages/processes.html`,
         });
         break;
       case 'Extension':
+        console.log('Updating extension state', message.content);
         renderBadge();
         if (message.content === 'On') {
           chrome.action.enable(sender.tab.id);
         } else if (message.content === 'Off') chrome.action.disable(sender.tab.id);
         break;
       case 'Load':
+        console.log('Loading cached content');
         sendResponse(content);
         break;
       case 'allUserRoles':
+        console.log('Opening user roles');
         content = message.content;
         chrome.tabs.create({
           url: `/pages/userroles.html`,
         });
         break;
       case 'optionsets':
+        console.log('Opening optionsets');
         content = message.content;
         chrome.tabs.create({
           url: `/pages/optionsets.html`,
         });
         break;
       case 'Impersonation':
+        console.log('Handling impersonation response');
         const impersonationResponse = <IImpersonationResponse>message.content;
         if (impersonationResponse.users.length === 0 || !impersonationResponse.impersonateRequest.canImpersonate)
           return;
@@ -111,6 +121,7 @@ chrome.runtime.onMessage.addListener(async function (
                 ],
               },
               async () => {
+                console.log('Dynamic rules updated for impersonation');
                 renderBadge(impersonationResponse.impersonateRequest.url);
               }
             );
@@ -120,6 +131,7 @@ chrome.runtime.onMessage.addListener(async function (
               chrome.declarativeNetRequest.updateDynamicRules({
                 removeRuleIds: ruleIds,
               });
+              console.log('Dynamic rules cleared');
             });
             chrome.storage.local.clear();
           }
@@ -131,16 +143,19 @@ chrome.runtime.onMessage.addListener(async function (
         break;
     }
   } else if (message.type === 'reset') {
+    console.log('Resetting impersonation state');
     chrome.declarativeNetRequest.getDynamicRules((rules) => {
       const ruleIds = rules.map((x) => x.id);
       chrome.declarativeNetRequest.updateDynamicRules({
         removeRuleIds: ruleIds,
       });
+      console.log('Dynamic rules cleared');
     });
     chrome.storage.local.clear();
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
     if (tab) chrome.tabs.reload(tab.id, { bypassCache: true });
   } else if (message.type === 'impersonation' || message.type === 'search') {
+    console.log('Forwarding impersonation/search message to content script');
     const impersonizationMessage = <IImpersonateMessage>message.content,
       [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
     if (!tab) return;
@@ -151,6 +166,7 @@ chrome.runtime.onMessage.addListener(async function (
       args: [message.type.toString(), message.category.toString(), impersonizationMessage],
     });
   } else {
+    console.log('Forwarding generic message to content script');
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
     if (!tab) return;
 
@@ -163,6 +179,7 @@ chrome.runtime.onMessage.addListener(async function (
 });
 
 async function renderBadge(url?: string) {
+  console.log('Levelup rendering badge for', url);
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
   if (!tab?.url) return;
 
@@ -184,9 +201,11 @@ async function renderBadge(url?: string) {
 }
 
 function postExtensionMessage(message: string, category: string) {
+  console.log('postExtensionMessage', { message, category });
   window.postMessage({ type: message, category: category }, '*');
 }
 
 function postExtensionMessageWithData(message: string, category: string, data: object) {
+  console.log('postExtensionMessageWithData', { message, category, data });
   window.postMessage({ type: message, category: category, content: data }, '*');
 }
