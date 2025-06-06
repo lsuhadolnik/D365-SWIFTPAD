@@ -146,6 +146,11 @@ if (process.env.NODE_ENV === 'development') {
 }
 ```
 
+### Troubleshooting
+
+If `npm run build` fails with an error like `Cannot find module '...safer-buffer/safer.js'`,
+make sure you ran `npm install` before building.
+
 ## Credits
 
 - [Bob Guidinger's original idea on Impersonation](https://bguidinger.com/blog/user-impersonation-in-unified-interface-apps)
