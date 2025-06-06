@@ -90,15 +90,15 @@
         <div class="mdl-layout__drawer">
             <span class="mdl-layout-title">Admin area</span>
             <nav id="environmentLinks" class="mdl-navigation">
-                <div data-category="API" class="links mdl-navigation__link" id="environmentDetails" data-category="">Environment Details</div>
-                <div data-category="API" class="links mdl-navigation__link" id="environmentSettings" data-category="Settings">Environment Settings</div>
-                <div data-category="API" class="links mdl-navigation__link" id="myRoles" data-category="myRoles">My Roles</div>
-                <div data-category="API" class="links mdl-navigation__link" id="allUserRoles" data-category="allUserRoles">Users and Roles</div>
-                <div data-category="Navigation" class="links mdl-navigation__link" id="myUserRecord" data-category="">My User Record</div>
-                <div data-category="Navigation" class="links mdl-navigation__link" id="myMailbox" data-category="">My Mailbox</div>
-                <div data-category="Navigation" class="links mdl-navigation__link" id="debugRibbon" data-category="">Command Debugger</div>
-                <div data-category="Navigation" class="links mdl-navigation__link" id="formMonitor" data-category="">Forms Monitor</div>
-                <div data-category="API" class="links mdl-navigation__link" id="entityMetadata" data-category="">Entity Metadata</div>
+                <div class="links mdl-navigation__link" id="environmentDetails">Environment Details</div>
+                <div class="links mdl-navigation__link" id="environmentSettings" data-category="Settings">Environment Settings</div>
+                <div class="links mdl-navigation__link" id="myRoles" data-category="myRoles">My Roles</div>
+                <div class="links mdl-navigation__link" id="allUserRoles" data-category="allUserRoles">Users and Roles</div>
+                <div class="links mdl-navigation__link" id="myUserRecord">My User Record</div>
+                <div class="links mdl-navigation__link" id="myMailbox">My Mailbox</div>
+                <div class="links mdl-navigation__link" id="debugRibbon">Command Debugger</div>
+                <div class="links mdl-navigation__link" id="formMonitor">Forms Monitor</div>
+                <div class="links mdl-navigation__link" id="entityMetadata">Entity Metadata</div>
             </nav>
         </div>
         <main class="mdl-layout__content">
@@ -142,7 +142,7 @@
                             </div>
                         </div>
                         <div class="mdl-cell mdl-cell--4-col">
-                            <button data-category="Forms" data-category="Forms" id="godMode" class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent">
+                            <button data-category="Forms" id="godMode" class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent">
                                 <i class="material-icons">vpn_key</i>
                                 <span>God Mode</span>
                             </button>
@@ -187,7 +187,7 @@
                             </div>
                         </div>
                         <div class="mdl-cell mdl-cell--4-col">
-                            <button data-category="Forms" data-category="Forms" id="openRecordWebApi" class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent">
+                            <button data-category="Forms" id="openRecordWebApi" class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent">
                                 <i class="material-icons">open_in_browser</i>
                                 <span>Open Record in Web API</span>
                             </button>
@@ -205,7 +205,7 @@
                             </div>
                         </div>
                         <div class="mdl-cell mdl-cell--4-col">
-                            <button data-category="Forms" data-category="Forms" id="populateMin" class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent">
+                            <button data-category="Forms" id="populateMin" class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent">
                                 <i class="material-icons">chevron_left</i>
                                 <span>Minimum values</span>
                             </button>
@@ -214,7 +214,7 @@
                             </div>
                         </div>
                         <div class="mdl-cell mdl-cell--4-col">
-                            <button data-category="Forms" data-category="optionsets" id="optionSets" class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent">
+                            <button data-category="Forms" id="optionSets" class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent">
                                 <i class="material-icons">unfold_more</i>
                                 <span>Show Optionset values</span>
                             </button>
@@ -250,7 +250,7 @@
                             </div>
                         </div>
                         <div class="mdl-cell mdl-cell--4-col">
-                            <button data-category="Forms" data-category="workflows" id="workflows" class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent">
+                            <button data-category="Forms" id="workflows" class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent">
                                 <i class="material-icons">view_module</i>
                                 <span>Processes &amp; Business Rules</span>
                             </button>
@@ -433,7 +433,7 @@
                             </div>
                         </div>
                         <div class="mdl-cell mdl-cell--4-col">
-                            <button data-category="Grid" data-category="quickFindFields" id="quickFindFields" class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent">
+                            <button data-category="quickFindFields" id="quickFindFields" class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent">
                                 <i class="material-icons">more_horiz</i>
                                 <span>Quick Find fields</span>
                             </button>
@@ -460,7 +460,7 @@
                             </div>
                         </div>
                         <div class="mdl-cell mdl-cell--4-col">
-                            <button data-category="Grid" data-category="sendToFXB" id="sendToFXB" class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent">
+                            <button data-category="sendToFXB" id="sendToFXB" class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent">
                                 <i class="material-icons">code</i>
                                 <span>Open View in FetchXML Builder</span>
                             </button>
@@ -476,7 +476,7 @@
                     <div class="mdl-grid" id="impersonate-tab">
                         <div class="mdl-cell mdl-cell--8-col impersonization-rows">
                             <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
-                                <input class="mdl-textfield__input" id="user-to-impersonate-input" name="user-to-impersonate-input" list="userList"></input>
+                                <input class="mdl-textfield__input" id="user-to-impersonate-input" name="user-to-impersonate-input" list="userList">
                                 <label id="user-to-impersonate-label" class="mdl-textfield__label" for="user-to-impersonate-input">User Name</label>
                             </div>
                             <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
