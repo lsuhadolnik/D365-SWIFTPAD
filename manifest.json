@@ -39,7 +39,8 @@
     {
       "resources": [
         "app/libraries/Sdk.Soap.min.js",
-        "app/scripts/levelup.extension.js"
+        "app/scripts/levelup.extension.js",
+        "app/commands.json"
       ],
       "matches": [
         "<all_urls>"
