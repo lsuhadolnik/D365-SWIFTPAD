@@ -68,7 +68,10 @@ async function openSpotlight() {
   function select(li: HTMLLIElement | null) {
     if (selected) selected.style.background = '';
     selected = li;
-    if (selected) selected.style.background = '#e0e0e0';
+    if (selected) {
+      selected.style.background = '#e0e0e0';
+      selected.scrollIntoView({ block: 'nearest' });
+    }
   }
 
   function render() {
