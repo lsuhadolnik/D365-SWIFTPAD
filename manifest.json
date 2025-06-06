@@ -1,13 +1,15 @@
 {
   "background": {
-    "service_worker": "/scripts/background.js"
+    "service_worker": "app/scripts/background.ts"
   },
   "action": {
-    "default_icon": {
-      "16": "icon-16.png"
-    },
     "default_title": "Level up for Dynamics 365/Power Apps",
-    "default_popup": "/pages/options.html"
+    "default_popup": "app/pages/options.html",
+    "default_icon": {
+      "16": "app/images/icon-16.png",
+      "48": "app/images/icon-48.png",
+      "128": "app/images/icon-128.png"
+    }
   },
   "name": "Level up for Dynamics 365/Power Apps",
   "author": "Natraj Yegnaraman",
@@ -19,15 +21,10 @@
         "https://*/*"
       ],
       "js": [
-        "/scripts/app.js"
+        "app/scripts/app.ts"
       ]
     }
   ],
-  "icons": {
-    "16": "icon-16.png",
-    "48": "icon-48.png",
-    "128": "icon-128.png"
-  },
   "host_permissions": [
     "*://*.dynamics.com/api/*",
     "*://*.dynamics.com.mcas.ms/*"
@@ -41,14 +38,19 @@
   "web_accessible_resources": [
     {
       "resources": [
-        "/scripts/Sdk.Soap.min.js",
-        "/scripts/levelup.extension.js"
+        "app/libraries/Sdk.Soap.min.js",
+        "app/scripts/levelup.extension.ts"
       ],
       "matches": [
         "<all_urls>"
       ]
     }
   ],
+  "icons": {
+    "16": "app/images/icon-16.png",
+    "48": "app/images/icon-48.png",
+    "128": "app/images/icon-128.png"
+  },
   "version": "3.6.3",
   "manifest_version": 3
 }
