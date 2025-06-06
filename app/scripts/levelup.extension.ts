@@ -11,6 +11,8 @@ window.addEventListener('message', async function (event) {
   let formDocument: Document;
   let xrm: Xrm.XrmStatic;
 
+  console.log('Levelup received window message', event.data);
+
   // home.dynamics.com also messaging. Ignore.
   if (location.origin !== event.origin && location.origin !== `${event.origin}.mcas.ms`) return;
   const source = <Window>event.source;
@@ -53,6 +55,7 @@ window.addEventListener('message', async function (event) {
     }
     try {
       const message = <IExtensionMessage>event.data;
+      console.log('Levelup executing message', message);
       switch (message.category) {
         case 'Forms':
           new Forms(utility)[message.type]();
@@ -72,7 +75,8 @@ window.addEventListener('message', async function (event) {
           break;
       }
     } catch (e) {
-      console.error(e);
+      console.error('Levelup message execution failed', e);
+      alert('Levelup encountered an error. Check console for details.');
     }
   }
 });
