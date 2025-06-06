@@ -23,7 +23,7 @@ chrome.runtime.onMessage.addListener(async function (
         console.log('Opening organisation details');
         content = message.content;
         chrome.tabs.create({
-          url: `/pages/organisationdetails.html`,
+          url: chrome.runtime.getURL('app/pages/organisationdetails.html'),
         });
         break;
       case 'myRoles':
@@ -34,14 +34,14 @@ chrome.runtime.onMessage.addListener(async function (
         console.log('Opening grid page for', c);
         content = message.content;
         chrome.tabs.create({
-          url: `/pages/grid.html`,
+          url: chrome.runtime.getURL('app/pages/grid.html'),
         });
         break;
       case 'workflows':
         console.log('Opening processes page');
         content = message.content;
         chrome.tabs.create({
-          url: `/pages/processes.html`,
+          url: chrome.runtime.getURL('app/pages/processes.html'),
         });
         break;
       case 'Extension':
@@ -59,14 +59,14 @@ chrome.runtime.onMessage.addListener(async function (
         console.log('Opening user roles');
         content = message.content;
         chrome.tabs.create({
-          url: `/pages/userroles.html`,
+          url: chrome.runtime.getURL('app/pages/userroles.html'),
         });
         break;
       case 'optionsets':
         console.log('Opening optionsets');
         content = message.content;
         chrome.tabs.create({
-          url: `/pages/optionsets.html`,
+          url: chrome.runtime.getURL('app/pages/optionsets.html'),
         });
         break;
       case 'Impersonation':
