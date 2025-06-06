@@ -1,5 +1,6 @@
 import { Utility } from './inject/levelup.common.utility';
 import { ICustomMessage } from './interfaces/types';
+import { initSpotlight } from './spotlight';
 
 class App {
   isCRMPage: boolean;
@@ -19,6 +20,7 @@ class App {
   start() {
     console.log('Levelup App starting');
     this.hookupEventListeners();
+    initSpotlight();
     if (this.isCRMPage) {
       Utility.injectScript(chrome.runtime.getURL('app/libraries/Sdk.Soap.min.js'));
       Utility.injectScript(chrome.runtime.getURL('app/scripts/levelup.extension.js'));
