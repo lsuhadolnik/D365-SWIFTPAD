@@ -9,9 +9,9 @@
   },
   "scripts": {
     "dev": "vite",
-    "prebuild": "esbuild app/scripts/levelup.extension.ts --bundle --outfile=app/scripts/levelup.extension.js --platform=browser --format=esm",
+    "prebuild": "esbuild app/scripts/levelup.extension.ts --bundle --outfile=app/scripts/levelup.extension.js --platform=browser --format=esm && esbuild app/scripts/grid.ts --bundle --outfile=app/scripts/grid.js --platform=browser --format=esm && esbuild app/scripts/pages/organisationdetails.ts --bundle --outfile=app/scripts/organisationdetails.js --platform=browser --format=esm && esbuild app/scripts/pages/processes.ts --bundle --outfile=app/scripts/processes.js --platform=browser --format=esm && esbuild app/scripts/pages/userroles.ts --bundle --outfile=app/scripts/userroles.js --platform=browser --format=esm && esbuild app/scripts/pages/optionsets.ts --bundle --outfile=app/scripts/optionsets.js --platform=browser --format=esm",
     "build": "vite build",
-    "postbuild": "rm app/scripts/levelup.extension.js",
+    "postbuild": "rm app/scripts/levelup.extension.js app/scripts/grid.js app/scripts/organisationdetails.js app/scripts/processes.js app/scripts/userroles.js app/scripts/optionsets.js",
     "lint": "eslint \"app/**/*.ts\"",
     "pack": "npm run build"
   },
