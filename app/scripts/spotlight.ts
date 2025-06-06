@@ -50,7 +50,7 @@ async function openSpotlight() {
   input.type = 'text';
   input.placeholder = 'Search commands...';
   input.style.cssText =
-    'width:100%;padding:10px 12px;font-size:16px;border:none;outline:none;border-radius:6px;background:rgba(255,255,255,0.6);backdrop-filter:blur(4px);';
+    'width:95%;padding:10px 12px;font-size:16px;border:none;outline:none;border-radius:6px;background:rgba(255,255,255,0.6);backdrop-filter:blur(4px);';
   const list = document.createElement('ul');
   list.style.cssText = 'max-height:300px;overflow-y:auto;margin:8px 0 0;padding:0;list-style:none;';
   container.append(input, list);
