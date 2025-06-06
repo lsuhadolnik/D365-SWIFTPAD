@@ -20,8 +20,8 @@ class App {
     console.log('Levelup App starting');
     this.hookupEventListeners();
     if (this.isCRMPage) {
-      Utility.injectScript(chrome.runtime.getURL('scripts/Sdk.Soap.min.js'));
-      Utility.injectScript(chrome.runtime.getURL('scripts/levelup.extension.js'));
+      Utility.injectScript(chrome.runtime.getURL('libraries/Sdk.Soap.min.js'));
+      Utility.injectScript(chrome.runtime.getURL('scripts/levelup.extension.ts'));
       Utility.enableExtension(true);
     } else {
       Utility.enableExtension(false);
