@@ -10,6 +10,7 @@ export function initSpotlight() {
   document.addEventListener('keydown', async (e) => {
     if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.code === 'KeyP') {
       e.preventDefault();
+      e.stopImmediatePropagation();
       if (!document.getElementById('dl-spotlight-backdrop')) {
         await openSpotlight();
       }
@@ -21,31 +22,7 @@ export function initSpotlight() {
 
 async function loadCommands(): Promise<Command[]> {
   if (commandsPromise) return commandsPromise;
-  commandsPromise = fetch(chrome.runtime.getURL('app/pages/options.html'))
-    .then((r) => r.text())
-    .then((text) => {
-      const parser = new DOMParser();
-      const doc = parser.parseFromString(text, 'text/html');
-      const cmds: Command[] = [];
-      doc.querySelectorAll('#environmentLinks .mdl-navigation__link').forEach((d) => {
-        cmds.push({
-          id: (d as HTMLElement).id,
-          category: d.getAttribute('data-category') || '',
-          title: d.textContent.trim(),
-        });
-      });
-      doc.querySelectorAll('button[id]').forEach((btn) => {
-        const id = (btn as HTMLElement).id;
-        let category = btn.getAttribute('data-category') || '';
-        if (id === 'searchUserButton' || id === 'startImpersonationButton' || id === 'resetImpersonationButton') {
-          category = 'Impersonation';
-        }
-        const span = btn.querySelector('span');
-        const title = (span ? span.textContent : btn.textContent).trim();
-        cmds.push({ id, category, title });
-      });
-      return cmds;
-    });
+  commandsPromise = fetch(chrome.runtime.getURL('app/commands.json')).then((r) => r.json());
   return commandsPromise;
 }
 
@@ -64,16 +41,16 @@ function fuzzyMatch(query: string, text: string): boolean {
 async function openSpotlight() {
   const backdrop = document.createElement('div');
   backdrop.id = 'dl-spotlight-backdrop';
-  backdrop.style.cssText =
-    'position:fixed;inset:0;background:rgba(0,0,0,0.3);backdrop-filter:blur(2px);z-index:2147483647;';
+  backdrop.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.3);z-index:2147483647;';
   const container = document.createElement('div');
   container.id = 'dl-spotlight-container';
   container.style.cssText =
-    'position:absolute;top:20%;left:50%;transform:translateX(-50%);background:#fff;color:#000;border-radius:8px;padding:16px;width:480px;box-shadow:0 4px 20px rgba(0,0,0,0.2);backdrop-filter:blur(10px);';
+    'position:absolute;top:20%;left:50%;transform:translateX(-50%);background:rgba(255,255,255,0.75);color:#000;border-radius:12px;padding:16px;width:500px;box-shadow:0 8px 30px rgba(0,0,0,0.2);backdrop-filter:blur(20px);';
   const input = document.createElement('input');
   input.type = 'text';
   input.placeholder = 'Search commands...';
-  input.style.cssText = 'width:100%;padding:8px;font-size:16px;border:none;outline:none;';
+  input.style.cssText =
+    'width:100%;padding:10px 12px;font-size:16px;border:none;outline:none;border-radius:6px;background:rgba(255,255,255,0.6);backdrop-filter:blur(4px);';
   const list = document.createElement('ul');
   list.style.cssText = 'max-height:300px;overflow-y:auto;margin:8px 0 0;padding:0;list-style:none;';
   container.append(input, list);
@@ -101,7 +78,7 @@ async function openSpotlight() {
       li.textContent = cmd.title;
       li.dataset.id = cmd.id;
       li.dataset.category = cmd.category;
-      li.style.cssText = 'padding:4px 8px;cursor:pointer;border-radius:4px;';
+      li.style.cssText = 'padding:6px 12px;cursor:pointer;border-radius:6px;font-size:14px;';
       li.addEventListener('mouseenter', () => select(li));
       li.addEventListener('click', () => executeCommand(cmd));
       list.append(li);
@@ -117,12 +94,15 @@ async function openSpotlight() {
   input.addEventListener('keydown', (e) => {
     if (e.key === 'ArrowDown') {
       e.preventDefault();
+      e.stopImmediatePropagation();
       if (selected && selected.nextElementSibling) select(selected.nextElementSibling as HTMLLIElement);
     } else if (e.key === 'ArrowUp') {
       e.preventDefault();
+      e.stopImmediatePropagation();
       if (selected && selected.previousElementSibling) select(selected.previousElementSibling as HTMLLIElement);
     } else if (e.key === 'Enter') {
       e.preventDefault();
+      e.stopImmediatePropagation();
       if (selected)
         executeCommand({
           id: selected.dataset.id!,
