@@ -4,6 +4,8 @@
 node_modules
 npm-debug.log
 
+app/scripts/*.js
+
 dist/
 packages/
 
