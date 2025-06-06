@@ -379,8 +379,8 @@ export class Forms {
                   workflowKeyValue === 0 || workflowKeyValue.Value === 0
                     ? 'Process'
                     : workflowKeyValue === 2 || workflowKeyValue.Value === 2
-                    ? 'Business Rule'
-                    : 'Action';
+                      ? 'Business Rule'
+                      : 'Action';
               } else if (keyName === 'mode') {
                 workflowKeyValue = workflowKeyValue === 0 || workflowKeyValue.Value === 0 ? 'Background' : 'Real-time';
               } else if (keyName === 'runas') {
@@ -388,8 +388,8 @@ export class Forms {
                   workflowKeyValue === 0 || workflowKeyValue.Value === 0
                     ? 'Owner'
                     : workflowKeyValue === 1 || workflowKeyValue.Value === 1
-                    ? 'User'
-                    : '';
+                      ? 'User'
+                      : '';
               } else if (keyName === 'ismanaged') {
                 workflowKeyValue = workflowKeyValue || workflowKeyValue.Value ? 'Managed' : 'Unmanaged';
               } else if (
