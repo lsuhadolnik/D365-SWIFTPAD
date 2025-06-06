@@ -3,7 +3,7 @@
     "service_worker": "app/scripts/background.ts"
   },
   "action": {
-    "default_title": "Level up for Dynamics 365/Power Apps",
+    "default_title": "Dynamics Launchpad",
     "default_popup": "app/pages/options.html",
     "default_icon": {
       "16": "app/images/icon-16.png",
@@ -11,8 +11,8 @@
       "128": "app/images/icon-128.png"
     }
   },
-  "name": "Level up for Dynamics 365/Power Apps",
-  "author": "Natraj Yegnaraman",
+  "name": "Dynamics Launchpad",
+  "author": "Orig: Natraj Yegnaraman, Launchpad: Lovro Suhadolnik",
   "description": "Quickly perform advanced/hidden actions in Dynamics 365/Power Apps, without bookmarklets.",
   "content_scripts": [
     {
