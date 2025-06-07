@@ -1,5 +1,42 @@
 [
   {
+    "id": "openRecordSpotlight",
+    "category": "Navigation",
+    "title": "Quick open..."
+  },
+  {
+    "id": "displayLogicalNames",
+    "category": "Forms",
+    "title": "Logical Names"
+  },
+  {
+    "id": "godMode",
+    "category": "Forms",
+    "title": "God Mode"
+  },
+  {
+    "id": "allFields",
+    "category": "Forms",
+    "title": "All Fields"
+  },
+  {
+    "id": "optionSets",
+    "category": "Forms",
+    "title": "Show Optionset values"
+  },
+  {
+    "id": "impersonateUserSpotlight",
+    "category": "Impersonation",
+    "title": "Impersonation: Select User"
+  },
+  {
+    "id": "runFetchXmlSpotlight",
+    "category": "API",
+    "title": "Run FetchXML"
+  },
+
+
+  {
     "id": "environmentDetails",
     "category": "",
     "title": "Environment Details"
@@ -30,25 +67,11 @@
     "title": "My Mailbox"
   },
   {
-    "id": "debugRibbon",
-    "category": "",
-    "title": "Command Debugger"
-  },
-  {
-    "id": "formMonitor",
-    "category": "",
-    "title": "Forms Monitor"
-  },
-  {
     "id": "entityMetadata",
     "category": "",
     "title": "Entity Metadata"
   },
-  {
-    "id": "displayLogicalNames",
-    "category": "Forms",
-    "title": "Logical Names"
-  },
+  
   {
     "id": "clearLogicalNames",
     "category": "Forms",
@@ -64,16 +87,8 @@
     "category": "Forms",
     "title": "Reset Blur"
   },
-  {
-    "id": "godMode",
-    "category": "Forms",
-    "title": "God Mode"
-  },
-  {
-    "id": "allFields",
-    "category": "Forms",
-    "title": "All Fields"
-  },
+  
+  
   {
     "id": "highlightDirtyFields",
     "category": "Forms",
@@ -82,12 +97,12 @@
   {
     "id": "copyRecordUrl",
     "category": "Forms",
-    "title": "Record URL"
+    "title": "Copy Record URL"
   },
   {
     "id": "copyRecordId",
     "category": "Forms",
-    "title": "Record Id"
+    "title": "Copy Record Id"
   },
   {
     "id": "openRecordWebApi",
@@ -104,11 +119,7 @@
     "category": "Forms",
     "title": "Minimum values"
   },
-  {
-    "id": "optionSets",
-    "category": "Forms",
-    "title": "Show Optionset values"
-  },
+  
   {
     "id": "cloneRecord",
     "category": "Forms",
@@ -120,34 +131,19 @@
     "title": "Refresh + Autosave off"
   },
   {
-    "id": "toggleTabs",
-    "category": "Forms",
-    "title": "Toggle Tabs"
-  },
-  {
     "id": "workflows",
     "category": "Forms",
-    "title": "Processes &amp; Business Rules"
-  },
-  {
-    "id": "formProperties",
-    "category": "Forms",
-    "title": "Record Properties"
-  },
-  {
-    "id": "openRecord",
-    "category": "Navigation",
-    "title": "Open record by Id"
+    "title": "Show enabled Processes & Business Rules"
   },
   {
     "id": "refreshEntityMetadata",
     "category": "",
-    "title": "Refresh entity metadata"
+    "title": "Swiftpad: Refresh entity metadata"
   },
   {
     "id": "newRecord",
     "category": "Navigation",
-    "title": "New record"
+    "title": "Open New record form"
   },
   {
     "id": "openList",
@@ -155,74 +151,54 @@
     "title": "Open List"
   },
   {
-    "id": "openSecurity",
-    "category": "Navigation",
-    "title": "Security"
-  },
-  {
     "id": "openSystemJobs",
     "category": "Navigation",
-    "title": "System Jobs"
+    "title": "Open System Jobs"
   },
   {
     "id": "openSolutions",
     "category": "Navigation",
-    "title": "Solutions"
+    "title": "Open Solutions"
   },
   {
     "id": "openProcesses",
     "category": "Navigation",
-    "title": "Processes"
+    "title": "Open Processes"
   },
   {
     "id": "openMailboxes",
     "category": "Navigation",
-    "title": "Mailboxes"
+    "title": "Open Mailboxes"
   },
   {
     "id": "openMain",
     "category": "Navigation",
-    "title": "Open Main"
+    "title": "Open Main entity form"
   },
   {
     "id": "openAdvFind",
     "category": "Navigation",
-    "title": "Advanced Find"
-  },
-  {
-    "id": "mocaClient",
-    "category": "Navigation",
-    "title": "Mobile Client"
+    "title": "Open Advanced Find"
   },
   {
     "id": "diagnostics",
     "category": "Navigation",
-    "title": "Performance Diag"
+    "title": "Open Performance Diagnostics"
   },
   {
     "id": "perfCenter",
     "category": "Navigation",
-    "title": "Performance Center"
+    "title": "Enable Performance Center"
   },
   {
     "id": "instancePicker",
     "category": "Navigation",
-    "title": "Instance Picker"
-  },
-  {
-    "id": "openPPAC",
-    "category": "Navigation",
-    "title": "Power Platform Admin"
-  },
-  {
-    "id": "solutionHistory",
-    "category": "Navigation",
-    "title": "Solutions History"
+    "title": "Open Instance Picker"
   },
   {
     "id": "openGrid",
     "category": "Grid",
-    "title": "New window"
+    "title": "Open Record List"
   },
   {
     "id": "quickFindFields",
@@ -244,31 +220,8 @@
     "category": "sendToFXB",
     "title": "Open View in FetchXML Builder"
   },
-  {
-    "id": "searchUserButton",
-    "category": "Impersonation",
-    "title": "Search User"
-  },
-  {
-    "id": "startImpersonationButton",
-    "category": "Impersonation",
-    "title": "Impersonate"
-  },
-  {
-    "id": "resetImpersonationButton",
-    "category": "Impersonation",
-    "title": "Reset"
-  },
-  {
-    "id": "openRecordSpotlight",
-    "category": "Navigation",
-    "title": "Open Record Quick"
-  },
-  {
-    "id": "impersonateUserSpotlight",
-    "category": "Impersonation",
-    "title": "Impersonate User"
-  },
+  
+  
   {
     "id": "impersonationResetSpotlight",
     "category": "Impersonation",
@@ -293,10 +246,5 @@
     "id": "reloadData",
     "category": "Navigation",
     "title": "Reload Data"
-  },
-  {
-    "id": "runFetchXmlSpotlight",
-    "category": "API",
-    "title": "Run FetchXML"
   }
 ]
