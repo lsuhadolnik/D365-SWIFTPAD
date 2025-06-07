@@ -143,7 +143,7 @@ async function openSpotlight(options?: { tip?: boolean }) {
     filtered = metadata;
     input.placeholder =
       state === Step.OpenRecordId ? 'Enter GUID or start typing the name of the entity' : 'Search entity...';
-  } else if (state === Step.EntityInfoDisplay) {
+  } else if (state === Step.EntityInfoDisplay || state === Step.EnvironmentInfoDisplay) {
     input.placeholder = '';
   } else if (state === Step.ImpersonateSearch) {
     input.placeholder = 'Search user...';
@@ -161,6 +161,21 @@ async function openSpotlight(options?: { tip?: boolean }) {
       selected.classList.add('dl-selected');
       selected.scrollIntoView({ block: 'nearest' });
     }
+  }
+
+  function showToast(message: string) {
+    const toast = document.createElement('div');
+    toast.textContent = message;
+    toast.style.cssText =
+      'position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#323232;color:#fff;padding:8px 16px;border-radius:4px;z-index:2147483647;opacity:0;transition:opacity 0.3s;';
+    document.body.append(toast);
+    requestAnimationFrame(() => {
+      toast.style.opacity = '1';
+    });
+    setTimeout(() => {
+      toast.style.opacity = '0';
+      toast.addEventListener('transitionend', () => toast.remove());
+    }, 2000);
   }
 
   function renderPills() {
@@ -183,6 +198,7 @@ async function openSpotlight(options?: { tip?: boolean }) {
           } else {
             state = Step.Commands;
             filtered = commands;
+            input.style.display = '';
             render();
           }
           renderPills();
@@ -207,6 +223,9 @@ async function openSpotlight(options?: { tip?: boolean }) {
       renderUsers();
     } else if (state === Step.FetchXml) {
       renderFetchResults();
+    } else if (state === Step.EnvironmentInfoDisplay) {
+      list.style.display = 'none';
+      infoPanel.style.display = 'block';
     }
     select(list.firstElementChild as HTMLLIElement | null);
   }
@@ -389,6 +408,8 @@ async function openSpotlight(options?: { tip?: boolean }) {
     } else if (state === Step.FetchXml) {
       const ql = q.toLowerCase();
       filtered = fetchResults.filter((r) => r.name.toLowerCase().includes(ql) || r.id.toLowerCase().includes(ql));
+    } else if (state === Step.EnvironmentInfoDisplay) {
+      filtered = [];
     }
     render();
   });
@@ -512,6 +533,49 @@ async function openSpotlight(options?: { tip?: boolean }) {
       infoPanel.innerHTML = `<div><strong>${logical}</strong></div><div>Id: ${id}</div><div>Name: ${name}</div>`;
       list.style.display = 'none';
       infoPanel.style.display = 'block';
+      renderPills();
+      render();
+      return;
+    } else if (cmd.id === 'environmentDetails') {
+      state = Step.EnvironmentInfoDisplay;
+      pills.push('Environment');
+      progressText.textContent = 'Loading details...';
+      progress.style.display = 'block';
+      try {
+        const resp = await fetch(`${location.origin}/api/data/v9.1/RetrieveCurrentOrganization(AccessType='Default')`);
+        const data = await resp.json();
+        const env = data.Detail || {};
+        const appId = new URLSearchParams(location.search).get('appid');
+        if (appId) env.AppId = appId;
+        const rows = Object.keys(env).map((k) => {
+          const raw = typeof env[k] === 'object' ? JSON.stringify(env[k], null, 2) : String(env[k]);
+          const attrVal = raw.replaceAll('"', '&quot;');
+          const htmlVal = raw.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+          return `<div class="dl-info-row">${k}: <span class="dl-copy dl-code" data-val="${attrVal}">${htmlVal}</span></div>`;
+        });
+        infoPanel.innerHTML = `<div class="dl-copy-hint">Click to Copy</div>${rows.join('')}`;
+        input.style.display = 'none';
+        infoPanel.querySelectorAll<HTMLSpanElement>('.dl-copy').forEach((el) => {
+          el.addEventListener('click', () => {
+            const val = el.dataset.val || '';
+            navigator.clipboard.writeText(val).catch(() => {
+              const inp = document.createElement('input');
+              inp.value = val;
+              document.body.append(inp);
+              inp.select();
+              document.execCommand('copy');
+              inp.remove();
+            });
+            showToast('Copied to Clipboard');
+          });
+        });
+      } finally {
+        progress.style.display = 'none';
+      }
+      list.style.display = 'none';
+      infoPanel.style.display = 'block';
+      input.placeholder = '';
+      input.value = '';
       renderPills();
       render();
       return;

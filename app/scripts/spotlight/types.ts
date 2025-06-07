@@ -26,6 +26,7 @@ export enum Step {
   ImpersonateSearch,
   FetchXml,
   EntityInfoDisplay,
+  EnvironmentInfoDisplay,
 }
 
 export interface SpotlightState {
