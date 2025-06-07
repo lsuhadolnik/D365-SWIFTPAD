@@ -140,6 +140,11 @@
     "title": "Open record by Id"
   },
   {
+    "id": "refreshEntityMetadata",
+    "category": "",
+    "title": "Refresh entity metadata"
+  },
+  {
     "id": "newRecord",
     "category": "Navigation",
     "title": "New record"
