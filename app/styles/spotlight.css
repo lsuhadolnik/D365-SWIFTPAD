@@ -147,10 +147,17 @@
   cursor: pointer;
   user-select: all;
   font-family: monospace;
+  color: #791098;
+}
+
+.dl-copy:hover {
+  background: white;
+  border-radius: 7px;
 }
 
 .dl-info-row {
   margin-bottom: 4px;
+  overflow: hidden;
 }
 
 .dl-copy-hint {

@@ -163,6 +163,21 @@ async function openSpotlight(options?: { tip?: boolean }) {
     }
   }
 
+  function showToast(message: string) {
+    const toast = document.createElement('div');
+    toast.textContent = message;
+    toast.style.cssText =
+      'position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#323232;color:#fff;padding:8px 16px;border-radius:4px;z-index:2147483647;opacity:0;transition:opacity 0.3s;';
+    document.body.append(toast);
+    requestAnimationFrame(() => {
+      toast.style.opacity = '1';
+    });
+    setTimeout(() => {
+      toast.style.opacity = '0';
+      toast.addEventListener('transitionend', () => toast.remove());
+    }, 2000);
+  }
+
   function renderPills() {
     pillWrap.innerHTML = '';
     pills.forEach((p, idx) => {
@@ -551,6 +566,7 @@ async function openSpotlight(options?: { tip?: boolean }) {
               document.execCommand('copy');
               inp.remove();
             });
+            showToast('Copied to Clipboard');
           });
         });
       } finally {
