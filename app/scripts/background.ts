@@ -209,3 +209,13 @@ function postExtensionMessageWithData(message: string, category: string, data: o
   console.log('postExtensionMessageWithData', { message, category, data });
   window.postMessage({ type: message, category: category, content: data }, '*');
 }
+
+chrome.action.onClicked.addListener((tab) => {
+  if (!tab.id) return;
+  chrome.scripting.executeScript({
+    target: { tabId: tab.id },
+    func: () => {
+      window.dispatchEvent(new CustomEvent('openSpotlight', { detail: { tip: true } }));
+    },
+  });
+});
