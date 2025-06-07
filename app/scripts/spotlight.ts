@@ -59,7 +59,7 @@ async function loadEntityMetadata(force = false): Promise<EntityInfo[]> {
     entityMetadataPromise = Promise.resolve(JSON.parse(cached));
     return entityMetadataPromise;
   }
-  const url = `${window.Xrm?.Page?.context.getClientUrl()}/api/data/v9.1/EntityDefinitions?$select=DisplayName,LogicalName,PrimaryIdAttribute,PrimaryNameAttribute`;
+  const url = `${window.location.origin}/api/data/v9.1/EntityDefinitions?$select=DisplayName,LogicalName,PrimaryIdAttribute,PrimaryNameAttribute`;
   entityMetadataPromise = fetch(url)
     .then((r) => r.json())
     .then((d) =>
