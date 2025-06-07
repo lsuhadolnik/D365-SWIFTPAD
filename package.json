@@ -11,7 +11,7 @@
     "dev": "vite",
     "prebuild": "esbuild app/scripts/levelup.extension.ts --bundle --outfile=app/scripts/levelup.extension.js --platform=browser --format=esm && esbuild app/scripts/grid.ts --bundle --outfile=app/scripts/grid.js --platform=browser --format=esm && esbuild app/scripts/pages/organisationdetails.ts --bundle --outfile=app/scripts/organisationdetails.js --platform=browser --format=esm && esbuild app/scripts/pages/processes.ts --bundle --outfile=app/scripts/processes.js --platform=browser --format=esm && esbuild app/scripts/pages/userroles.ts --bundle --outfile=app/scripts/userroles.js --platform=browser --format=esm && esbuild app/scripts/pages/optionsets.ts --bundle --outfile=app/scripts/optionsets.js --platform=browser --format=esm",
     "build": "vite build",
-    "postbuild": "rm app/scripts/levelup.extension.js app/scripts/grid.js app/scripts/organisationdetails.js app/scripts/processes.js app/scripts/userroles.js app/scripts/optionsets.js",
+    "postbuild": "rimraf app/scripts/levelup.extension.js app/scripts/grid.js app/scripts/organisationdetails.js app/scripts/processes.js app/scripts/userroles.js app/scripts/optionsets.js",
     "lint": "eslint \"app/**/*.ts\"",
     "pack": "npm run build"
   },
@@ -27,6 +27,7 @@
     "eslint-plugin-prettier": "^5.4.1",
     "prettier": "^3.5.3",
     "esbuild": "^0.20.0",
+    "rimraf": "^5.0.5",
     "typescript": "^5.8.3",
     "vite": "^6.3.5"
   },
