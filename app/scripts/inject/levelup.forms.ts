@@ -122,7 +122,7 @@ export class Forms {
       }etn=${this.utility.Xrm.Page.data.entity.getEntityName()}&id=${entityId}&newWindow=true&pagetype=entityrecord`;
       try {
         Utility.copy(locationUrl);
-        alert('Record URL has been copied to clipboard');
+        this.showToast('Record URL has been copied to clipboard');
       } catch (e) {
         prompt('Ctrl+C to copy. OK to close.', locationUrl);
       }
@@ -136,7 +136,7 @@ export class Forms {
     if (entityId) {
       try {
         Utility.copy(entityId.substr(1, 36));
-        alert('Record Id has been copied to clipboard');
+        this.showToast('Record Id has been copied to clipboard');
       } catch (e) {
         prompt('Ctrl+C to copy. OK to close.', entityId);
       }
@@ -483,6 +483,21 @@ export class Forms {
 
   resetBlur() {
     setFilter(this.utility.Xrm.Page.getAttribute(), this.utility.formDocument, '');
+  }
+
+  private showToast(message: string) {
+    const toast = this.utility.formDocument.createElement('div');
+    toast.textContent = message;
+    toast.style.cssText =
+      'position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#323232;color:#fff;padding:8px 16px;border-radius:4px;z-index:2147483647;opacity:0;transition:opacity 0.3s;';
+    this.utility.formDocument.body.append(toast);
+    requestAnimationFrame(() => {
+      toast.style.opacity = '1';
+    });
+    setTimeout(() => {
+      toast.style.opacity = '0';
+      toast.addEventListener('transitionend', () => toast.remove());
+    }, 2000);
   }
 }
 

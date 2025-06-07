@@ -536,6 +536,95 @@ async function openSpotlight(options?: { tip?: boolean }) {
       renderPills();
       render();
       return;
+    } else if (cmd.id === 'myRoles') {
+      state = Step.EnvironmentInfoDisplay;
+      pills.push('Roles');
+      progressText.textContent = 'Loading roles...';
+      progress.style.display = 'block';
+      try {
+        const ids = (window as any).Xrm?.Page?.context?.getUserRoles?.() || [];
+        if (ids.length) {
+          const filter = ids.map((id: string) => `roleid eq ${id}`).join(' or ');
+          const resp = await fetch(`${location.origin}/api/data/v9.1/roles?$select=name,roleid&$filter=${filter}`);
+          const data = await resp.json();
+          const rows = (data.value || []).map(
+            (r: any) =>
+              `<div class="dl-info-row">${r.name}: <span class="dl-copy dl-code" data-val="${r.roleid}">${r.roleid}</span></div>`
+          );
+          infoPanel.innerHTML = `<div class="dl-copy-hint">Click to Copy</div>${rows.join('')}`;
+          input.style.display = 'none';
+          infoPanel.querySelectorAll<HTMLSpanElement>('.dl-copy').forEach((el) => {
+            el.addEventListener('click', () => {
+              const val = el.dataset.val || '';
+              navigator.clipboard.writeText(val).catch(() => {
+                const inp = document.createElement('input');
+                inp.value = val;
+                document.body.append(inp);
+                inp.select();
+                document.execCommand('copy');
+                inp.remove();
+              });
+              showToast('Copied to Clipboard');
+            });
+          });
+        }
+      } finally {
+        progress.style.display = 'none';
+      }
+      list.style.display = 'none';
+      infoPanel.style.display = 'block';
+      input.placeholder = '';
+      input.value = '';
+      renderPills();
+      render();
+      return;
+    } else if (cmd.id === 'entityMetadata') {
+      state = Step.EnvironmentInfoDisplay;
+      pills.push('Metadata');
+      const entity = (window as any).Xrm?.Page?.data?.entity?.getEntityName?.() || '';
+      if (!entity) {
+        showToast('No entity context');
+        return;
+      }
+      progressText.textContent = 'Loading metadata...';
+      progress.style.display = 'block';
+      try {
+        const resp = await fetch(`${location.origin}/api/data/v9.1/EntityDefinitions(LogicalName='${entity}')`);
+        const data = await resp.json();
+        const rows = Object.keys(data)
+          .filter((k) => !k.startsWith('@'))
+          .map((k) => {
+            const raw = typeof data[k] === 'object' ? JSON.stringify(data[k], null, 2) : String(data[k]);
+            const attrVal = raw.replaceAll('"', '&quot;');
+            const htmlVal = raw.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+            return `<div class="dl-info-row">${k}: <span class="dl-copy dl-code" data-val="${attrVal}">${htmlVal}</span></div>`;
+          });
+        infoPanel.innerHTML = `<div class="dl-copy-hint">Click to Copy</div>${rows.join('')}`;
+        input.style.display = 'none';
+        infoPanel.querySelectorAll<HTMLSpanElement>('.dl-copy').forEach((el) => {
+          el.addEventListener('click', () => {
+            const val = el.dataset.val || '';
+            navigator.clipboard.writeText(val).catch(() => {
+              const inp = document.createElement('input');
+              inp.value = val;
+              document.body.append(inp);
+              inp.select();
+              document.execCommand('copy');
+              inp.remove();
+            });
+            showToast('Copied to Clipboard');
+          });
+        });
+      } finally {
+        progress.style.display = 'none';
+      }
+      list.style.display = 'none';
+      infoPanel.style.display = 'block';
+      input.placeholder = '';
+      input.value = '';
+      renderPills();
+      render();
+      return;
     } else if (cmd.id === 'environmentDetails') {
       state = Step.EnvironmentInfoDisplay;
       pills.push('Environment');

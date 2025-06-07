@@ -78,6 +78,15 @@ window.addEventListener('message', async function (event) {
           const impersonateMessage = <IImpersonateMessage>message.content;
           new Service(utility).impersonateUser(impersonateMessage);
           break;
+        case 'myRoles':
+        case 'allUserRoles':
+        case 'entityMetadata':
+        case 'environment':
+        case 'optionsets':
+        case 'workflows':
+        case 'allFields':
+          new Service(utility)[message.type]();
+          break;
       }
     } catch (e) {
       console.error('Levelup message execution failed', e);
