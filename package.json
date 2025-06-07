@@ -1,9 +1,9 @@
 {
-  "name": "levelup-for-dynamics-365-power-apps",
+  "name": "d365-swiftpad",
   "private": true,
-  "version": "3.6.3",
+  "version": "4.0.0",
   "type": "module",
-  "description": "Quickly perform advanced/hidden actions in Dynamics 365/Power Apps, without bookmarklets.",
+  "description": "Navigate Dynamics as fast as YOU want.",
   "engines": {
     "node": ">=20"
   },
