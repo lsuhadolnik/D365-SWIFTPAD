@@ -77,7 +77,7 @@ export function initSpotlight() {
         await openSpotlight();
       }
     } else if (e.key === 'Escape') {
-      closeSpotlight(true);
+      closeSpotlight();
     }
   });
 }
@@ -126,14 +126,18 @@ async function loadEntityMetadata(force = false): Promise<EntityInfo[]> {
   return entityMetadataPromise;
 }
 
-async function openSpotlight() {
+async function openSpotlight(options?: { tip?: boolean }) {
   const backdrop = document.createElement('div');
   backdrop.id = 'dl-spotlight-backdrop';
   backdrop.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.3);z-index:2147483647;';
   const container = document.createElement('div');
   container.id = 'dl-spotlight-container';
   container.style.cssText =
-    'position:absolute;top:20%;left:50%;transform:translateX(-50%);background:rgba(255,255,255,0.75);color:#000;border-radius:12px;padding:16px;width:500px;box-shadow:0 8px 30px rgba(0,0,0,0.2);backdrop-filter:blur(20px);';
+    'position:absolute;top:20%;left:50%;transform:translateX(-50%);background:rgba(255,255,255,0.45);color:#000;border-radius:12px;padding:16px;width:500px;box-shadow:0 8px 30px rgba(0,0,0,0.2);backdrop-filter:blur(9px);';
+
+  const logo = document.createElement('img');
+  logo.src = chrome.runtime.getURL('app/images/lp_ll.png');
+  logo.style.cssText = 'position:absolute;top:8px;right:8px;height:32px;';
 
   if (!document.getElementById('dl-spotlight-icons')) {
     const link = document.createElement('link');
@@ -155,7 +159,7 @@ async function openSpotlight() {
   input.setAttribute('autocorrect', 'off');
   input.setAttribute('spellcheck', 'false');
   input.style.cssText =
-    'width:95%;padding:10px 12px;font-size:16px;border:none;outline:none;border-radius:6px;background:rgba(255,255,255,0.6);backdrop-filter:blur(4px);';
+    'width:95%;padding:10px 12px;font-size:16px;border:none;outline:none;border-radius:6px;background:rgba(255,255,255,0.4);backdrop-filter:blur(4px);';
   const list = document.createElement('ul');
   list.style.cssText = 'max-height:300px;overflow-y:auto;margin:8px 0 0;padding:0;list-style:none;';
   const infoPanel = document.createElement('div');
@@ -166,18 +170,20 @@ async function openSpotlight() {
   progress.innerHTML =
     '<div class="dl-spinner" style="margin:0 auto"></div><div class="dl-progress-text" style="font-size:12px;color:#555;margin-top:4px;"></div>';
   const progressText = progress.querySelector<HTMLDivElement>('.dl-progress-text')!;
-  container.append(pillWrap, input, list, infoPanel, progress);
+  container.append(logo, pillWrap, input, list, infoPanel, progress);
+  if (options?.tip) {
+    const tip = document.createElement('div');
+    tip.textContent = 'Tip: Press Ctrl+Shift+P to open this window.';
+    tip.style.cssText = 'margin-top:8px;font-size:12px;color:#555;text-align:right;';
+    container.append(tip);
+  }
   backdrop.append(container);
   backdrop.addEventListener('click', (e) => {
-    if (e.target === backdrop) closeSpotlight(true);
+    if (e.target === backdrop) closeSpotlight();
   });
   document.body.append(backdrop);
   input.focus();
-  const saved = localStorage.getItem('dl-spotlight-state');
-
-  const stateObj: SpotlightState = saved
-    ? JSON.parse(saved)
-    : { query: '', state: Step.Commands, pills: [], selectedEntity: '' };
+  const stateObj: SpotlightState = { query: '', state: Step.Commands, pills: [], selectedEntity: '' };
   input.value = stateObj.query;
   input.select();
 
@@ -627,18 +633,7 @@ async function openSpotlight() {
 
   render();
 
-  spotlightCleanup = (save: boolean) => {
-    if (save) {
-      const stateToSave: SpotlightState = {
-        query: input.value,
-        state,
-        pills,
-        selectedEntity,
-      };
-      localStorage.setItem('dl-spotlight-state', JSON.stringify(stateToSave));
-    } else {
-      localStorage.removeItem('dl-spotlight-state');
-    }
+  spotlightCleanup = () => {
     if (handleSpotlightMessage) {
       chrome.runtime.onMessage.removeListener(handleSpotlightMessage);
       handleSpotlightMessage = null;
@@ -646,9 +641,16 @@ async function openSpotlight() {
   };
 }
 
-function closeSpotlight(save = false) {
+function closeSpotlight() {
   const el = document.getElementById('dl-spotlight-backdrop');
-  if (spotlightCleanup) spotlightCleanup(save);
+  if (spotlightCleanup) spotlightCleanup();
   spotlightCleanup = null;
   if (el) el.remove();
 }
+
+window.addEventListener('openSpotlight', async (e) => {
+  const detail = (e as CustomEvent).detail as { tip?: boolean } | undefined;
+  if (!document.getElementById('dl-spotlight-backdrop')) {
+    await openSpotlight(detail);
+  }
+});

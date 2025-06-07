@@ -4,7 +4,6 @@
   },
   "action": {
     "default_title": "Dynamics Launchpad",
-    "default_popup": "app/pages/options.html",
     "default_icon": {
       "16": "app/images/icon-16.png",
       "48": "app/images/icon-48.png",
@@ -40,7 +39,8 @@
       "resources": [
         "app/libraries/Sdk.Soap.min.js",
         "app/scripts/levelup.extension.js",
-        "app/commands.json"
+        "app/commands.json",
+        "app/images/lp_ll.png"
       ],
       "matches": [
         "<all_urls>"
