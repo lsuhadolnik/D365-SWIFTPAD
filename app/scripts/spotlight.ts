@@ -191,6 +191,8 @@ async function openSpotlight() {
 
   if (state === Step.FetchXml) {
     state = Step.Commands;
+    pills.length = 0;
+    selectedEntity = '';
   }
 
   if (state === Step.OpenRecordEntity || state === Step.OpenRecordId) {
@@ -199,7 +201,8 @@ async function openSpotlight() {
     metadata = await loadEntityMetadata();
     progress.style.display = 'none';
     filtered = metadata;
-    input.placeholder = state === Step.OpenRecordId ? 'Record GUID...' : 'Search entity...';
+    input.placeholder =
+      state === Step.OpenRecordId ? 'Enter GUID or start typing the name of the entity' : 'Search entity...';
   } else if (state === Step.EntityInfoDisplay) {
     input.placeholder = '';
   } else if (state === Step.ImpersonateSearch) {
@@ -285,7 +288,7 @@ async function openSpotlight() {
           if (state === Step.OpenRecordEntity) {
             state = Step.OpenRecordId;
             input.value = '';
-            input.placeholder = 'Record GUID...';
+            input.placeholder = 'Enter GUID or start typing the name of the entity';
             list.innerHTML = '';
             renderPills();
           } else {
@@ -315,7 +318,7 @@ async function openSpotlight() {
             pills.push(typed);
             state = Step.OpenRecordId;
             input.value = '';
-            input.placeholder = 'Record GUID...';
+            input.placeholder = 'Enter GUID or start typing the name of the entity';
             list.innerHTML = '';
             renderPills();
           });
@@ -383,8 +386,8 @@ async function openSpotlight() {
     } else if (state === Step.OpenRecordId) {
       const info = metadata.find((m) => m.logicalName === selectedEntity);
       if (info) {
-        if (/^[{]?[0-9a-fA-F]{8}-/.test(q)) {
-          recordResults = [];
+        if (/^[{]?[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}[}]?$/.test(q)) {
+          recordResults = [{ id: q.replace(/[{}]/g, ''), name: 'Open Record' }];
         } else if (q.length > 1) {
           progressText.textContent = 'Searching...';
           progress.style.display = 'block';
@@ -523,7 +526,10 @@ async function openSpotlight() {
       pills.push('FetchXML');
       list.style.display = 'none';
       infoPanel.style.display = 'block';
-      infoPanel.innerHTML = '<textarea id="dl-fetchxml" style="width:100%;height:80px;"></textarea>';
+      infoPanel.innerHTML =
+        '<div style="font-weight:bold;margin-bottom:4px;">FetchXML Runner</div>' +
+        '<textarea id="dl-fetchxml" style="width:100%;height:80px;"></textarea>' +
+        '<div style="font-size:12px;margin-top:4px;">Press Ctrl+Enter to run</div>';
       input.style.display = 'none';
       const textarea = infoPanel.querySelector<HTMLTextAreaElement>('textarea')!;
       textarea.focus();

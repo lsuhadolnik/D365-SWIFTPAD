@@ -178,7 +178,13 @@ export class Navigation {
     //@ts-ignore
     if (Xrm.Page?.data?.refresh) {
       //@ts-ignore
-      return Xrm.Page.data.refresh(false);
+      const result = Xrm.Page.data.refresh(false);
+      if (result && result.then) {
+        result.then(() => this.showToast('Data reloaded'));
+      } else {
+        this.showToast('Data reloaded');
+      }
+      return;
     }
     window.location.reload();
   }
@@ -211,5 +217,20 @@ export class Navigation {
     if (Xrm.Internal.isUci && Xrm.Internal.isUci() && !location.search.includes('monitor=')) {
       window.location.href = `${location.href}&monitor=true`;
     }
+  }
+
+  private showToast(message: string) {
+    const toast = document.createElement('div');
+    toast.textContent = message;
+    toast.style.cssText =
+      'position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#323232;color:#fff;padding:8px 16px;border-radius:4px;z-index:2147483647;opacity:0;transition:opacity 0.3s;';
+    document.body.append(toast);
+    requestAnimationFrame(() => {
+      toast.style.opacity = '1';
+    });
+    setTimeout(() => {
+      toast.style.opacity = '0';
+      toast.addEventListener('transitionend', () => toast.remove());
+    }, 2000);
   }
 }
