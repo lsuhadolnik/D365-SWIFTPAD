@@ -1,3 +1,7 @@
+/**
+ * Spotlight UI implementation. Handles keyboard activation, rendering
+ * of results and command execution.
+ */
 import { Command, EntityInfo, UserInfo, Step, SpotlightState } from './types';
 import { loadCommands, fuzzyMatch } from './commands';
 import { loadEntityMetadata } from './metadata';
@@ -63,15 +67,12 @@ function openEntityList(entity: string) {
 async function openSpotlight(options?: { tip?: boolean }) {
   const backdrop = document.createElement('div');
   backdrop.id = 'dl-spotlight-backdrop';
-  backdrop.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.3);z-index:2147483647;';
   const container = document.createElement('div');
   container.id = 'dl-spotlight-container';
-  container.style.cssText =
-    'position:absolute;top:20%;left:50%;transform:translateX(-50%);background:rgba(255,255,255,0.45);color:#000;border-radius:12px;padding:16px;width:500px;box-shadow:0 8px 30px rgba(0,0,0,0.2);backdrop-filter:blur(9px);';
 
   const logo = document.createElement('img');
+  logo.id = 'dl-spotlight-logo';
   logo.src = chrome.runtime.getURL('app/images/lp_ll.png');
-  logo.style.cssText = 'position:absolute;top:8px;right:8px;height:32px;';
 
   if (!document.getElementById('dl-spotlight-icons')) {
     const link = document.createElement('link');
@@ -79,36 +80,35 @@ async function openSpotlight(options?: { tip?: boolean }) {
     link.id = 'dl-spotlight-icons';
     link.href = 'https://fonts.googleapis.com/icon?family=Material+Icons';
     document.head.append(link);
-    const style = document.createElement('style');
-    style.textContent =
-      '.dl-spinner{border:4px solid #f3f3f3;border-top:4px solid #555;border-radius:50%;width:24px;height:24px;animation:dl-spin 1s linear infinite;}@keyframes dl-spin{0%{transform:rotate(0deg);}100%{transform:rotate(360deg);}}';
-    document.head.append(style);
+  }
+  if (!document.getElementById('dl-spotlight-css')) {
+    const css = document.createElement('link');
+    css.rel = 'stylesheet';
+    css.id = 'dl-spotlight-css';
+    css.href = chrome.runtime.getURL('app/styles/spotlight.css');
+    document.head.append(css);
   }
   const pillWrap = document.createElement('div');
-  pillWrap.style.cssText = 'margin-bottom:6px;min-height:24px;';
+  pillWrap.id = 'dl-spotlight-pills';
   const input = document.createElement('input');
   input.type = 'text';
   input.id = 'dl-spotlight-input';
   input.autocomplete = 'off';
   input.setAttribute('autocorrect', 'off');
   input.setAttribute('spellcheck', 'false');
-  input.style.cssText =
-    'width:95%;padding:10px 12px;font-size:16px;border:none;outline:none;border-radius:6px;background:rgba(255,255,255,0.4);backdrop-filter:blur(4px);';
   const list = document.createElement('ul');
-  list.style.cssText = 'max-height:300px;overflow-y:auto;margin:8px 0 0;padding:0;list-style:none;';
+  list.id = 'dl-spotlight-list';
   const infoPanel = document.createElement('div');
-  infoPanel.style.cssText =
-    'display:none;margin-top:8px;font-size:14px;background:#f7f7f7;padding:8px;border-radius:6px;';
+  infoPanel.id = 'dl-spotlight-info';
   const progress = document.createElement('div');
-  progress.style.cssText = 'display:none;text-align:center;margin-top:6px;';
-  progress.innerHTML =
-    '<div class="dl-spinner" style="margin:0 auto"></div><div class="dl-progress-text" style="font-size:12px;color:#555;margin-top:4px;"></div>';
+  progress.id = 'dl-spotlight-progress';
+  progress.innerHTML = '<div class="dl-spinner"></div><div class="dl-progress-text"></div>';
   const progressText = progress.querySelector<HTMLDivElement>('.dl-progress-text')!;
   container.append(logo, pillWrap, input, list, infoPanel, progress);
   if (options?.tip) {
     const tip = document.createElement('div');
     tip.textContent = 'Tip: Press Ctrl+Shift+P to open this window.';
-    tip.style.cssText = 'margin-top:8px;font-size:12px;color:#555;text-align:right;';
+    tip.className = 'dl-tip';
     container.append(tip);
   }
   backdrop.append(container);
@@ -155,10 +155,10 @@ async function openSpotlight(options?: { tip?: boolean }) {
 
   let selected: HTMLLIElement | null = null;
   function select(li: HTMLLIElement | null) {
-    if (selected) selected.style.background = '';
+    if (selected) selected.classList.remove('dl-selected');
     selected = li;
     if (selected) {
-      selected.style.background = '#e0e0e0';
+      selected.classList.add('dl-selected');
       selected.scrollIntoView({ block: 'nearest' });
     }
   }
@@ -168,8 +168,7 @@ async function openSpotlight(options?: { tip?: boolean }) {
     pills.forEach((p, idx) => {
       const span = document.createElement('span');
       span.textContent = p;
-      span.style.cssText =
-        'display:inline-block;background:#dedede;border-radius:12px;padding:2px 8px;margin-right:4px;font-size:12px;';
+      span.className = 'dl-pill';
       if (idx === pills.length - 1) {
         const x = document.createElement('span');
         x.textContent = ' ×';
@@ -199,126 +198,146 @@ async function openSpotlight(options?: { tip?: boolean }) {
     infoPanel.style.display = 'none';
     list.style.display = '';
     if (state === Step.Commands) {
-      const showAll = input.value.trim() === '';
-      const cmds = showAll ? (filtered as Command[]) : (filtered as Command[]).slice(0, 20);
-      cmds.forEach((cmd) => {
-        const li = document.createElement('li');
-        const icon = document.createElement('span');
-        icon.className = 'material-icons';
-        icon.textContent = cmd.icon || commandIcons[cmd.id] || categoryIcons[cmd.category] || 'chevron_right';
-        icon.style.cssText = 'margin-right:8px;color:#a631af;font-size:15px;';
-        const text = document.createElement('span');
-        text.textContent = cmd.title;
-        li.append(icon, text);
-        li.dataset.id = cmd.id;
-        li.dataset.category = cmd.category;
-        li.style.cssText =
-          'padding:6px 12px;cursor:pointer;border-radius:6px;font-size:14px;display:flex;align-items:center;';
-        li.addEventListener('mouseenter', () => select(li));
-        li.addEventListener('click', () => executeCommand(cmd));
-        list.append(li);
-      });
+      renderCommands();
     } else if (state === Step.OpenRecordEntity) {
-      (filtered as EntityInfo[]).slice(0, 20).forEach((ent) => {
+      renderEntities();
+    } else if (state === Step.OpenRecordId) {
+      renderRecords();
+    } else if (state === Step.ImpersonateSearch) {
+      renderUsers();
+    } else if (state === Step.FetchXml) {
+      renderFetchResults();
+    }
+    select(list.firstElementChild as HTMLLIElement | null);
+  }
+
+  function renderCommands() {
+    const showAll = input.value.trim() === '';
+    const cmds = showAll ? (filtered as Command[]) : (filtered as Command[]).slice(0, 20);
+    cmds.forEach((cmd) => {
+      const li = document.createElement('li');
+      const icon = document.createElement('span');
+      icon.className = 'material-icons dl-command-icon';
+      icon.textContent = cmd.icon || commandIcons[cmd.id] || categoryIcons[cmd.category] || 'chevron_right';
+      const text = document.createElement('span');
+      text.textContent = cmd.title;
+      li.append(icon, text);
+      li.dataset.id = cmd.id;
+      li.dataset.category = cmd.category;
+      li.className = 'dl-listitem';
+      li.addEventListener('mouseenter', () => select(li));
+      li.addEventListener('click', () => executeCommand(cmd));
+      list.append(li);
+    });
+  }
+
+  function renderEntities() {
+    (filtered as EntityInfo[]).slice(0, 20).forEach((ent) => {
+      const li = document.createElement('li');
+      li.innerHTML = `${ent.displayName} <code class="dl-code">${ent.logicalName}</code>`;
+      li.className = 'dl-listitem';
+      li.addEventListener('mouseenter', () => select(li));
+      li.addEventListener('click', () => {
+        selectedEntity = ent.logicalName;
+        pills.push(ent.displayName);
+        state = Step.OpenRecordId;
+        input.value = '';
+        input.placeholder = 'Enter GUID or start typing the name of the entity';
+        list.innerHTML = '';
+        renderPills();
+        render();
+      });
+      // Double click directly opens the list view
+      li.addEventListener('dblclick', () => {
+        closeSpotlight();
+        openEntityList(ent.logicalName);
+      });
+      list.append(li);
+    });
+    if (state === Step.OpenRecordEntity) {
+      const typed = input.value.trim();
+      if (typed && !metadata.some((m) => m.logicalName.toLowerCase() === typed.toLowerCase())) {
         const li = document.createElement('li');
-        li.innerHTML = `${ent.displayName} <code style="background:#f0f0f0;padding:2px 4px;border-radius:4px;font-family:monospace;">${ent.logicalName}</code>`;
-        li.style.cssText = 'padding:6px 12px;cursor:pointer;border-radius:6px;font-size:14px;';
+        li.innerHTML = `Use <code class="dl-code">${typed}</code>`;
+        li.className = 'dl-listitem dl-muted';
         li.addEventListener('mouseenter', () => select(li));
         li.addEventListener('click', () => {
-          selectedEntity = ent.logicalName;
-          pills.push(ent.displayName);
+          selectedEntity = typed;
+          pills.push(typed);
           state = Step.OpenRecordId;
           input.value = '';
           input.placeholder = 'Enter GUID or start typing the name of the entity';
           list.innerHTML = '';
           renderPills();
-        });
-        // Double click directly opens the list view
-        li.addEventListener('dblclick', () => {
-          closeSpotlight();
-          openEntityList(ent.logicalName);
+          render();
         });
         list.append(li);
-      });
-      if (state === Step.OpenRecordEntity) {
-        const typed = input.value.trim();
-        if (typed && !metadata.some((m) => m.logicalName.toLowerCase() === typed.toLowerCase())) {
-          const li = document.createElement('li');
-          li.innerHTML = `Use <code style="background:#f0f0f0;padding:2px 4px;border-radius:4px;font-family:monospace;">${typed}</code>`;
-          li.style.cssText = 'padding:6px 12px;cursor:pointer;border-radius:6px;font-size:14px;color:#555;';
-          li.addEventListener('mouseenter', () => select(li));
-          li.addEventListener('click', () => {
-            selectedEntity = typed;
-            pills.push(typed);
-            state = Step.OpenRecordId;
-            input.value = '';
-            input.placeholder = 'Enter GUID or start typing the name of the entity';
-            list.innerHTML = '';
-            renderPills();
-          });
-          list.append(li);
-        }
       }
-    } else if (state === Step.OpenRecordId) {
-      const openListLi = document.createElement('li');
-      openListLi.textContent = `Open ${selectedEntity} list`;
-      openListLi.style.cssText = 'padding:6px 12px;cursor:pointer;border-radius:6px;font-size:14px;';
-      openListLi.addEventListener('mouseenter', () => select(openListLi));
-      openListLi.addEventListener('click', () => {
-        closeSpotlight();
-        openEntityList(selectedEntity);
-      });
-      list.append(openListLi);
-
-      (filtered as { id: string; name: string }[]).slice(0, 20).forEach((r) => {
-        const li = document.createElement('li');
-        li.textContent = `${r.name} (${r.id})`;
-        li.style.cssText = 'padding:6px 12px;cursor:pointer;border-radius:6px;font-size:14px;';
-        li.addEventListener('mouseenter', () => select(li));
-        li.addEventListener('click', () => {
-          closeSpotlight();
-          chrome.runtime.sendMessage({
-            type: 'openRecordQuick',
-            category: 'Navigation',
-            content: { entity: selectedEntity, id: r.id },
-          });
-        });
-        list.append(li);
-      });
-    } else if (state === Step.ImpersonateSearch) {
-      (filtered as UserInfo[]).slice(0, 20).forEach((u) => {
-        const li = document.createElement('li');
-        li.textContent = `${u.fullName} (${u.userName})`;
-        li.style.cssText = 'padding:6px 12px;cursor:pointer;border-radius:6px;font-size:14px;';
-        li.addEventListener('mouseenter', () => select(li));
-        li.addEventListener('click', () => {
-          closeSpotlight();
-          chrome.runtime.sendMessage({
-            type: 'impersonation',
-            category: 'Impersonation',
-            content: { isActive: true, userName: u.userName, url: `${location.origin}/` },
-          });
-        });
-        list.append(li);
-      });
-    } else if (state === Step.FetchXml) {
-      (filtered as { id: string; name: string }[]).slice(0, 20).forEach((r) => {
-        const li = document.createElement('li');
-        li.textContent = `${r.name} (${r.id})`;
-        li.style.cssText = 'padding:6px 12px;cursor:pointer;border-radius:6px;font-size:14px;';
-        li.addEventListener('mouseenter', () => select(li));
-        li.addEventListener('click', () => {
-          closeSpotlight();
-          chrome.runtime.sendMessage({
-            type: 'openRecordQuick',
-            category: 'Navigation',
-            content: { entity: fetchEntity, id: r.id },
-          });
-        });
-        list.append(li);
-      });
     }
-    select(list.firstElementChild as HTMLLIElement | null);
+  }
+
+  function renderRecords() {
+    const openListLi = document.createElement('li');
+    openListLi.textContent = `Open ${selectedEntity} list`;
+    openListLi.className = 'dl-listitem';
+    openListLi.addEventListener('mouseenter', () => select(openListLi));
+    openListLi.addEventListener('click', () => {
+      closeSpotlight();
+      openEntityList(selectedEntity);
+    });
+    list.append(openListLi);
+
+    (filtered as { id: string; name: string }[]).slice(0, 20).forEach((r) => {
+      const li = document.createElement('li');
+      li.textContent = `${r.name} (${r.id})`;
+      li.className = 'dl-listitem';
+      li.addEventListener('mouseenter', () => select(li));
+      li.addEventListener('click', () => {
+        closeSpotlight();
+        chrome.runtime.sendMessage({
+          type: 'openRecordQuick',
+          category: 'Navigation',
+          content: { entity: selectedEntity, id: r.id },
+        });
+      });
+      list.append(li);
+    });
+  }
+
+  function renderUsers() {
+    (filtered as UserInfo[]).slice(0, 20).forEach((u) => {
+      const li = document.createElement('li');
+      li.textContent = `${u.fullName} (${u.userName})`;
+      li.className = 'dl-listitem';
+      li.addEventListener('mouseenter', () => select(li));
+      li.addEventListener('click', () => {
+        closeSpotlight();
+        chrome.runtime.sendMessage({
+          type: 'impersonation',
+          category: 'Impersonation',
+          content: { isActive: true, userName: u.userName, url: `${location.origin}/` },
+        });
+      });
+      list.append(li);
+    });
+  }
+
+  function renderFetchResults() {
+    (filtered as { id: string; name: string }[]).slice(0, 20).forEach((r) => {
+      const li = document.createElement('li');
+      li.textContent = `${r.name} (${r.id})`;
+      li.className = 'dl-listitem';
+      li.addEventListener('mouseenter', () => select(li));
+      li.addEventListener('click', () => {
+        closeSpotlight();
+        chrome.runtime.sendMessage({
+          type: 'openRecordQuick',
+          category: 'Navigation',
+          content: { entity: fetchEntity, id: r.id },
+        });
+      });
+      list.append(li);
+    });
   }
 
   input.addEventListener('input', async () => {
