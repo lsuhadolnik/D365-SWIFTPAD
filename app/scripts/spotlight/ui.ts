@@ -183,6 +183,7 @@ async function openSpotlight(options?: { tip?: boolean }) {
           } else {
             state = Step.Commands;
             filtered = commands;
+            input.style.display = '';
             render();
           }
           renderPills();
@@ -531,9 +532,14 @@ async function openSpotlight(options?: { tip?: boolean }) {
         const env = data.Detail || {};
         const appId = new URLSearchParams(location.search).get('appid');
         if (appId) env.AppId = appId;
-        infoPanel.innerHTML = Object.keys(env)
-          .map((k) => `<div>${k}: <span class="dl-copy" data-val="${env[k]}">${env[k]}</span></div>`)
-          .join('');
+        const rows = Object.keys(env).map((k) => {
+          const raw = typeof env[k] === 'object' ? JSON.stringify(env[k], null, 2) : String(env[k]);
+          const attrVal = raw.replaceAll('"', '&quot;');
+          const htmlVal = raw.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+          return `<div class="dl-info-row">${k}: <span class="dl-copy dl-code" data-val="${attrVal}">${htmlVal}</span></div>`;
+        });
+        infoPanel.innerHTML = `<div class="dl-copy-hint">Click to Copy</div>${rows.join('')}`;
+        input.style.display = 'none';
         infoPanel.querySelectorAll<HTMLSpanElement>('.dl-copy').forEach((el) => {
           el.addEventListener('click', () => {
             const val = el.dataset.val || '';

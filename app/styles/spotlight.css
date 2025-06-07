@@ -54,7 +54,6 @@
   display: none;
   margin-top: 8px;
   font-size: 14px;
-  background: #f7f7f7;
   padding: 8px;
   border-radius: 6px;
 }
@@ -94,7 +93,7 @@
 }
 
 .dl-code {
-  background: #f0f0f0;
+  border: 1px solid #ccc;
   padding: 2px 4px;
   border-radius: 4px;
   font-family: monospace;
@@ -148,6 +147,16 @@
   cursor: pointer;
   user-select: all;
   font-family: monospace;
+}
+
+.dl-info-row {
+  margin-bottom: 4px;
+}
+
+.dl-copy-hint {
+  font-size: 12px;
+  color: #555;
+  margin-bottom: 6px;
 }
 
 @keyframes dl-spin {
