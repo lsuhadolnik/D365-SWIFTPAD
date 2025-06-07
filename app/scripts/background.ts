@@ -154,16 +154,16 @@ chrome.runtime.onMessage.addListener(async function (
     chrome.storage.local.clear();
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
     if (tab) chrome.tabs.reload(tab.id, { bypassCache: true });
-  } else if (message.type === 'impersonation' || message.type === 'search') {
-    console.log('Forwarding impersonation/search message to content script');
-    const impersonizationMessage = <IImpersonateMessage>message.content,
+  } else if (message.type === 'impersonation' || message.type === 'search' || message.type === 'openRecordQuick') {
+    console.log('Forwarding data message to content script');
+    const data = <IImpersonateMessage | { entity: string; id: string }>message.content,
       [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
     if (!tab) return;
 
     chrome.scripting.executeScript({
       target: { tabId: tab.id },
       func: postExtensionMessageWithData,
-      args: [message.type.toString(), message.category.toString(), impersonizationMessage],
+      args: [message.type.toString(), message.category.toString(), data],
     });
   } else {
     console.log('Forwarding generic message to content script');
