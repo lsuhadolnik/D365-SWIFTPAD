@@ -67,7 +67,12 @@ window.addEventListener('message', async function (event) {
           new Grid(utility)[message.type]();
           break;
         case 'Navigation':
-          new Navigation(utility)[message.type]();
+          if (message.type === 'openRecordQuick') {
+            const content = message.content as { entity: string; id: string };
+            new Navigation(utility).openRecord(content.entity, content.id);
+          } else {
+            new Navigation(utility)[message.type]();
+          }
           break;
         case 'Impersonation':
           const impersonateMessage = <IImpersonateMessage>message.content;

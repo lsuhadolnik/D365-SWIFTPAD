@@ -21,7 +21,7 @@
   },
   {
     "id": "myUserRecord",
-    "category": "",
+    "category": "Navigation",
     "title": "My User Record"
   },
   {
@@ -258,5 +258,45 @@
     "id": "resetImpersonationButton",
     "category": "Impersonation",
     "title": "Reset"
+  },
+  {
+    "id": "openRecordSpotlight",
+    "category": "Navigation",
+    "title": "Open Record Quick"
+  },
+  {
+    "id": "impersonateUserSpotlight",
+    "category": "Impersonation",
+    "title": "Impersonate User"
+  },
+  {
+    "id": "impersonationResetSpotlight",
+    "category": "Impersonation",
+    "title": "Impersonation: Reset"
+  },
+  {
+    "id": "openAdmin",
+    "category": "Navigation",
+    "title": "Open admin.dynamics.com"
+  },
+  {
+    "id": "openMakePowerApps",
+    "category": "Navigation",
+    "title": "Open make.powerapps.com"
+  },
+  {
+    "id": "entityInfoSpotlight",
+    "category": "Navigation",
+    "title": "Current record details"
+  },
+  {
+    "id": "reloadData",
+    "category": "Navigation",
+    "title": "Reload Data"
+  },
+  {
+    "id": "runFetchXmlSpotlight",
+    "category": "API",
+    "title": "Run FetchXML"
   }
 ]
