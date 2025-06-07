@@ -2,6 +2,7 @@ export interface Command {
   id: string;
   category: string;
   title: string;
+  icon?: string;
 }
 
 interface EntityInfo {
@@ -29,6 +30,16 @@ enum Step {
 let commandsPromise: Promise<Command[]> | null = null;
 let entityMetadataPromise: Promise<EntityInfo[]> | null = null;
 let handleSpotlightMessage: ((message: any) => void) | null = null;
+
+const commandIcons: Record<string, string> = {
+  openRecordSpotlight: 'launch',
+  impersonateUserSpotlight: 'person_search',
+  impersonationResetSpotlight: 'person_off',
+  openAdmin: 'open_in_new',
+  openMakePowerApps: 'open_in_new',
+  entityInfoSpotlight: 'info',
+  reloadData: 'refresh',
+};
 
 export function initSpotlight() {
   document.addEventListener('keydown', async (e) => {
@@ -95,6 +106,18 @@ async function openSpotlight() {
   container.id = 'dl-spotlight-container';
   container.style.cssText =
     'position:absolute;top:20%;left:50%;transform:translateX(-50%);background:rgba(255,255,255,0.75);color:#000;border-radius:12px;padding:16px;width:500px;box-shadow:0 8px 30px rgba(0,0,0,0.2);backdrop-filter:blur(20px);';
+
+  if (!document.getElementById('dl-spotlight-icons')) {
+    const link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.id = 'dl-spotlight-icons';
+    link.href = chrome.runtime.getURL('app/styles/material-icons.min.css');
+    document.head.append(link);
+    const style = document.createElement('style');
+    style.textContent =
+      '.dl-spinner{border:4px solid #f3f3f3;border-top:4px solid #555;border-radius:50%;width:24px;height:24px;animation:dl-spin 1s linear infinite;}@keyframes dl-spin{0%{transform:rotate(0deg);}100%{transform:rotate(360deg);}}';
+    document.head.append(style);
+  }
   const pillWrap = document.createElement('div');
   pillWrap.style.cssText = 'margin-bottom:6px;min-height:24px;';
   const input = document.createElement('input');
@@ -108,8 +131,11 @@ async function openSpotlight() {
   const infoPanel = document.createElement('div');
   infoPanel.style.cssText =
     'display:none;margin-top:8px;font-size:14px;background:#f7f7f7;padding:8px;border-radius:6px;';
-  const progress = document.createElement('progress');
-  progress.style.cssText = 'width:100%;display:none;height:4px;margin-top:6px;';
+  const progress = document.createElement('div');
+  progress.style.cssText = 'display:none;text-align:center;margin-top:6px;';
+  progress.innerHTML =
+    '<div class="dl-spinner" style="margin:0 auto"></div><div class="dl-progress-text" style="font-size:12px;color:#555;margin-top:4px;"></div>';
+  const progressText = progress.querySelector<HTMLDivElement>('.dl-progress-text')!;
   container.append(pillWrap, input, list, infoPanel, progress);
   backdrop.append(container);
   backdrop.addEventListener('click', (e) => {
@@ -179,10 +205,17 @@ async function openSpotlight() {
     if (state === Step.Commands) {
       (filtered as Command[]).slice(0, 20).forEach((cmd) => {
         const li = document.createElement('li');
-        li.textContent = cmd.title;
+        const icon = document.createElement('span');
+        icon.className = 'material-icons';
+        icon.textContent = commandIcons[cmd.id] || 'chevron_right';
+        icon.style.marginRight = '8px';
+        const text = document.createElement('span');
+        text.textContent = cmd.title;
+        li.append(icon, text);
         li.dataset.id = cmd.id;
         li.dataset.category = cmd.category;
-        li.style.cssText = 'padding:6px 12px;cursor:pointer;border-radius:6px;font-size:14px;';
+        li.style.cssText =
+          'padding:6px 12px;cursor:pointer;border-radius:6px;font-size:14px;display:flex;align-items:center;';
         li.addEventListener('mouseenter', () => select(li));
         li.addEventListener('click', () => executeCommand(cmd));
         list.append(li);
@@ -264,6 +297,8 @@ async function openSpotlight() {
       filtered = metadata.filter((m) => fuzzyMatch(q, m.displayName) || fuzzyMatch(q, m.logicalName));
     } else if (state === Step.ImpersonateSearch) {
       if (q) {
+        progressText.textContent = 'Loading users...';
+        progress.style.display = 'block';
         chrome.runtime.sendMessage({
           type: 'search',
           category: 'Impersonation',
@@ -272,6 +307,7 @@ async function openSpotlight() {
       } else {
         users = [];
         filtered = [];
+        progress.style.display = 'none';
       }
     }
     render();
@@ -343,6 +379,7 @@ async function openSpotlight() {
       users = message.content as UserInfo[];
       filtered = users;
       progress.style.display = 'none';
+      progressText.textContent = '';
       render();
     }
   };
@@ -353,6 +390,7 @@ async function openSpotlight() {
     if (cmd.id === 'openRecordSpotlight') {
       state = Step.OpenRecordEntity;
       pills.push('Open');
+      progressText.textContent = 'Loading metadata...';
       progress.style.display = 'block';
       metadata = await loadEntityMetadata();
       progress.style.display = 'none';
@@ -365,6 +403,7 @@ async function openSpotlight() {
     } else if (cmd.id === 'entityInfoSpotlight') {
       state = Step.EntityInfoEntity;
       pills.push('Info');
+      progressText.textContent = 'Loading metadata...';
       progress.style.display = 'block';
       metadata = await loadEntityMetadata();
       progress.style.display = 'none';
@@ -381,6 +420,7 @@ async function openSpotlight() {
       input.value = '';
       users = [];
       filtered = [];
+      progressText.textContent = 'Loading users...';
       progress.style.display = 'block';
       chrome.runtime.sendMessage({
         type: 'search',
@@ -395,6 +435,7 @@ async function openSpotlight() {
       chrome.runtime.sendMessage({ type: 'reset', category: 'Impersonation' });
       return;
     } else if (cmd.id === 'refreshEntityMetadata') {
+      progressText.textContent = 'Loading metadata...';
       progress.style.display = 'block';
       await loadEntityMetadata(true);
       progress.style.display = 'none';
