@@ -166,6 +166,14 @@ export class Navigation {
     window.open('https://admin.powerplatform.microsoft.com/analytics/d365ce');
   }
 
+  openAdmin() {
+    window.open('https://admin.dynamics.com', '_blank');
+  }
+
+  openMakePowerApps() {
+    window.open('https://make.powerapps.com', '_blank');
+  }
+
   solutionHistory() {
     if (
       //@ts-ignore
