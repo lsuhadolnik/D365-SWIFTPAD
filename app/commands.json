@@ -288,5 +288,10 @@
     "id": "entityInfoSpotlight",
     "category": "Navigation",
     "title": "Show Entity Info"
+  },
+  {
+    "id": "reloadData",
+    "category": "Navigation",
+    "title": "Reload Data"
   }
 ]

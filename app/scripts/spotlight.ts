@@ -28,6 +28,7 @@ enum Step {
 
 let commandsPromise: Promise<Command[]> | null = null;
 let entityMetadataPromise: Promise<EntityInfo[]> | null = null;
+let handleSpotlightMessage: ((message: any) => void) | null = null;
 
 export function initSpotlight() {
   document.addEventListener('keydown', async (e) => {
@@ -337,15 +338,16 @@ async function openSpotlight() {
     }
   });
 
-  function handleMessage(message: any) {
+  handleSpotlightMessage = function (message: any) {
     if (message.type === 'search' && message.category === 'Impersonation' && state === Step.ImpersonateSearch) {
       users = message.content as UserInfo[];
       filtered = users;
+      progress.style.display = 'none';
       render();
     }
-  }
+  };
 
-  chrome.runtime.onMessage.addListener(handleMessage);
+  chrome.runtime.onMessage.addListener(handleSpotlightMessage);
 
   async function executeCommand(cmd: Command) {
     if (cmd.id === 'openRecordSpotlight') {
@@ -379,6 +381,12 @@ async function openSpotlight() {
       input.value = '';
       users = [];
       filtered = [];
+      progress.style.display = 'block';
+      chrome.runtime.sendMessage({
+        type: 'search',
+        category: 'Impersonation',
+        content: { userName: '' },
+      });
       renderPills();
       render();
       return;
@@ -409,6 +417,9 @@ function closeSpotlight(save = false) {
   } else if (el) {
     localStorage.removeItem('dl-spotlight-query');
   }
-  chrome.runtime.onMessage.removeListener(handleMessage);
+  if (handleSpotlightMessage) {
+    chrome.runtime.onMessage.removeListener(handleSpotlightMessage);
+    handleSpotlightMessage = null;
+  }
   if (el) el.remove();
 }

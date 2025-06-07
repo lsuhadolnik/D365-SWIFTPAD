@@ -174,6 +174,10 @@ export class Navigation {
     window.open('https://make.powerapps.com', '_blank');
   }
 
+  reloadData() {
+    window.location.reload();
+  }
+
   solutionHistory() {
     if (
       //@ts-ignore

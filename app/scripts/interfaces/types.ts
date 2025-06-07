@@ -35,6 +35,7 @@ export type MessageType =
   | 'instancePicker'
   | 'openAdmin'
   | 'openMakePowerApps'
+  | 'reloadData'
   | 'openGrid'
   | 'quickFindFields'
   | 'environmentDetails'
