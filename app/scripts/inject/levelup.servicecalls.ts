@@ -199,7 +199,7 @@ export class Service {
           <attribute name='azureactivedirectoryobjectid' />
           <filter>
             <condition attribute='isdisabled' operator='eq' value='0' />
-            condition attribute='islicensed' operator='eq' value='1' />
+            <condition attribute='islicensed' operator='eq' value='1' />
             <condition attribute='accessmode' operator='eq' value='0' />
             <filter type="or">
               ${domainNameCondition}

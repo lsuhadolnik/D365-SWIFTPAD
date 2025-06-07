@@ -72,10 +72,10 @@ chrome.runtime.onMessage.addListener(async function (
       case 'Impersonation':
         console.log('Handling impersonation response');
         const impersonationResponse = <IImpersonationResponse>message.content;
-        if (impersonationResponse.users.length === 0 || !impersonationResponse.impersonateRequest.canImpersonate)
-          return;
+        if (!impersonationResponse.impersonateRequest.canImpersonate) return;
 
-        if (impersonationResponse.users.length > 1) {
+        // If more than one result or this is just a search request, return the list
+        if (!impersonationResponse.impersonateRequest.url || impersonationResponse.users.length !== 1) {
           chrome.runtime.sendMessage(<IExtensionMessage>{
             type: 'search',
             category: 'Impersonation',

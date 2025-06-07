@@ -1,0 +1,154 @@
+#dl-spotlight-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.3);
+  z-index: 2147483647;
+}
+
+#dl-spotlight-container {
+  position: absolute;
+  top: 20%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(255, 255, 255, 0.45);
+  color: #000;
+  border-radius: 12px;
+  padding: 16px;
+  width: 500px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(9px);
+}
+
+#dl-spotlight-logo {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  height: 32px;
+}
+
+#dl-spotlight-pills {
+  margin-bottom: 6px;
+  min-height: 24px;
+}
+
+#dl-spotlight-input {
+  width: 95%;
+  padding: 10px 12px;
+  font-size: 16px;
+  border: none;
+  outline: none;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.4);
+  backdrop-filter: blur(4px);
+}
+
+#dl-spotlight-list {
+  max-height: 300px;
+  overflow-y: auto;
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+#dl-spotlight-info {
+  display: none;
+  margin-top: 8px;
+  font-size: 14px;
+  background: #f7f7f7;
+  padding: 8px;
+  border-radius: 6px;
+}
+
+#dl-spotlight-progress {
+  display: none;
+  text-align: center;
+  margin-top: 6px;
+}
+
+.dl-pill {
+  display: inline-block;
+  background: #dedede;
+  border-radius: 12px;
+  padding: 2px 8px;
+  margin-right: 4px;
+  font-size: 12px;
+}
+
+.dl-listitem {
+  padding: 6px 12px;
+  cursor: pointer;
+  border-radius: 6px;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+}
+
+.dl-selected {
+  background: #e0e0e0;
+}
+
+.dl-command-icon {
+  margin-right: 8px;
+  color: #a631af;
+  font-size: 15px;
+}
+
+.dl-code {
+  background: #f0f0f0;
+  padding: 2px 4px;
+  border-radius: 4px;
+  font-family: monospace;
+}
+
+.dl-spinner {
+  display: block;
+  margin: 0 auto;
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #555;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  animation: dl-spin 1s linear infinite;
+}
+
+.dl-progress-text {
+  font-size: 12px;
+  color: #555;
+  margin-top: 4px;
+}
+
+.dl-tip {
+  margin-top: 8px;
+  font-size: 12px;
+  color: #555;
+  text-align: right;
+}
+
+.dl-muted {
+  color: #555;
+}
+
+/* FetchXML runner styles */
+#dl-fetchxml {
+  width: 100%;
+  height: 80px;
+}
+
+.dl-fetchxml-header {
+  font-weight: bold;
+  margin-bottom: 4px;
+}
+
+.dl-fetchxml-help {
+  font-size: 12px;
+  margin-top: 4px;
+}
+
+@keyframes dl-spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}

@@ -15,36 +15,22 @@
   "description": "Navigate Dynamics as fast as YOU want.",
   "content_scripts": [
     {
-      "matches": [
-        "http://*/*",
-        "https://*/*"
-      ],
-      "js": [
-        "app/scripts/app.ts"
-      ]
+      "matches": ["http://*/*", "https://*/*"],
+      "js": ["app/scripts/app.ts"]
     }
   ],
-  "host_permissions": [
-    "*://*.dynamics.com/api/*",
-    "*://*.dynamics.com.mcas.ms/*"
-  ],
-  "permissions": [
-    "scripting",
-    "storage",
-    "activeTab",
-    "declarativeNetRequest"
-  ],
+  "host_permissions": ["*://*.dynamics.com/api/*", "*://*.dynamics.com.mcas.ms/*"],
+  "permissions": ["scripting", "storage", "activeTab", "declarativeNetRequest"],
   "web_accessible_resources": [
     {
       "resources": [
         "app/libraries/Sdk.Soap.min.js",
         "app/scripts/levelup.extension.js",
         "app/commands.json",
-        "app/images/lp_ll.png"
+        "app/images/lp_ll.png",
+        "app/styles/spotlight.css"
       ],
-      "matches": [
-        "<all_urls>"
-      ]
+      "matches": ["<all_urls>"]
     }
   ],
   "icons": {
