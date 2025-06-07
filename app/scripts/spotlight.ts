@@ -104,7 +104,9 @@ async function loadEntityMetadata(force = false): Promise<EntityInfo[]> {
   if (entityMetadataPromise && !force) return entityMetadataPromise;
   const cached = localStorage.getItem('dl-entity-metadata');
   if (cached && !force) {
-    entityMetadataPromise = Promise.resolve(JSON.parse(cached));
+    const list = JSON.parse(cached) as EntityInfo[];
+    list.sort((a, b) => a.displayName.localeCompare(b.displayName));
+    entityMetadataPromise = Promise.resolve(list);
     return entityMetadataPromise;
   }
   const url = `${window.location.origin}/api/data/v9.1/EntityDefinitions?$select=DisplayName,LogicalName,PrimaryIdAttribute,PrimaryNameAttribute,LogicalCollectionName`;
@@ -120,6 +122,7 @@ async function loadEntityMetadata(force = false): Promise<EntityInfo[]> {
       }))
     )
     .then((list: EntityInfo[]) => {
+      list.sort((a, b) => a.displayName.localeCompare(b.displayName));
       localStorage.setItem('dl-entity-metadata', JSON.stringify(list));
       return list;
     });
@@ -334,6 +337,22 @@ async function openSpotlight(options?: { tip?: boolean }) {
         }
       }
     } else if (state === Step.OpenRecordId) {
+      const openListLi = document.createElement('li');
+      openListLi.textContent = `Open ${selectedEntity} list`;
+      openListLi.style.cssText = 'padding:6px 12px;cursor:pointer;border-radius:6px;font-size:14px;';
+      openListLi.addEventListener('mouseenter', () => select(openListLi));
+      openListLi.addEventListener('click', () => {
+        closeSpotlight();
+        const xrm = (window as any).Xrm;
+        const clientUrl =
+          xrm?.Utility?.getGlobalContext?.()?.getCurrentAppUrl?.() ||
+          xrm?.Page?.context?.getClientUrl?.() ||
+          location.origin;
+        const base = clientUrl + (clientUrl.includes('appid') ? '&' : '/main.aspx?');
+        window.open(`${base}etn=${selectedEntity}&pagetype=entitylist`);
+      });
+      list.append(openListLi);
+
       (filtered as { id: string; name: string }[]).slice(0, 20).forEach((r) => {
         const li = document.createElement('li');
         li.textContent = `${r.name} (${r.id})`;
@@ -390,7 +409,19 @@ async function openSpotlight(options?: { tip?: boolean }) {
     if (state === Step.Commands) {
       filtered = q ? commands.filter((c) => fuzzyMatch(q, c.title)) : commands;
     } else if (state === Step.OpenRecordEntity) {
-      filtered = metadata.filter((m) => fuzzyMatch(q, m.displayName) || fuzzyMatch(q, m.logicalName));
+      const items = metadata.filter((m) => fuzzyMatch(q, m.displayName) || fuzzyMatch(q, m.logicalName));
+      if (q) {
+        const lower = q.toLowerCase();
+        items.sort((a, b) => {
+          const aStarts =
+            a.displayName.toLowerCase().startsWith(lower) || a.logicalName.toLowerCase().startsWith(lower) ? 0 : 1;
+          const bStarts =
+            b.displayName.toLowerCase().startsWith(lower) || b.logicalName.toLowerCase().startsWith(lower) ? 0 : 1;
+          if (aStarts !== bStarts) return aStarts - bStarts;
+          return a.displayName.localeCompare(b.displayName);
+        });
+      }
+      filtered = items;
     } else if (state === Step.OpenRecordId) {
       const info = metadata.find((m) => m.logicalName === selectedEntity);
       if (info) {
