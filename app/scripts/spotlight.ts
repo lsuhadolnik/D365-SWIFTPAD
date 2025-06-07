@@ -30,6 +30,14 @@ enum Step {
 let commandsPromise: Promise<Command[]> | null = null;
 let entityMetadataPromise: Promise<EntityInfo[]> | null = null;
 let handleSpotlightMessage: ((message: any) => void) | null = null;
+let spotlightCleanup: ((save: boolean) => void) | null = null;
+
+interface SpotlightState {
+  query: string;
+  state: Step;
+  pills: string[];
+  selectedEntity: string;
+}
 
 const commandIcons: Record<string, string> = {
   openRecordSpotlight: 'launch',
@@ -124,7 +132,7 @@ async function openSpotlight() {
     const link = document.createElement('link');
     link.rel = 'stylesheet';
     link.id = 'dl-spotlight-icons';
-    link.href = chrome.runtime.getURL('app/styles/material-icons.min.css');
+    link.href = 'https://fonts.googleapis.com/icon?family=Material+Icons';
     document.head.append(link);
     const style = document.createElement('style');
     style.textContent =
@@ -136,7 +144,9 @@ async function openSpotlight() {
   const input = document.createElement('input');
   input.type = 'text';
   input.id = 'dl-spotlight-input';
-  input.placeholder = 'Search commands...';
+  input.autocomplete = 'off';
+  input.setAttribute('autocorrect', 'off');
+  input.setAttribute('spellcheck', 'false');
   input.style.cssText =
     'width:95%;padding:10px 12px;font-size:16px;border:none;outline:none;border-radius:6px;background:rgba(255,255,255,0.6);backdrop-filter:blur(4px);';
   const list = document.createElement('ul');
@@ -156,19 +166,44 @@ async function openSpotlight() {
   });
   document.body.append(backdrop);
   input.focus();
-  const lastQuery = localStorage.getItem('dl-spotlight-query');
-  if (lastQuery) {
-    input.value = lastQuery;
-    input.select();
-  }
+  const saved = localStorage.getItem('dl-spotlight-state');
+
+  const stateObj: SpotlightState = saved
+    ? JSON.parse(saved)
+    : { query: '', state: Step.Commands, pills: [], selectedEntity: '' };
+  input.value = stateObj.query;
+  input.select();
 
   const commands = (await loadCommands()).filter((c) => c.id !== 'startImpersonationButton');
   let metadata: EntityInfo[] = [];
   let filtered: (Command | EntityInfo)[] = commands;
-  let state: Step = Step.Commands;
-  let selectedEntity = '';
+  let state: Step = stateObj.state;
+  let selectedEntity = stateObj.selectedEntity;
   let users: UserInfo[] = [];
-  const pills: string[] = [];
+  const pills: string[] = [...stateObj.pills];
+
+  if (
+    state === Step.OpenRecordEntity ||
+    state === Step.OpenRecordId ||
+    state === Step.EntityInfoEntity ||
+    state === Step.EntityInfoDisplay
+  ) {
+    progressText.textContent = 'Loading metadata...';
+    progress.style.display = 'block';
+    metadata = await loadEntityMetadata();
+    progress.style.display = 'none';
+    filtered = metadata;
+    input.placeholder = state === Step.OpenRecordId ? 'Record GUID...' : 'Search entity...';
+    if (state === Step.EntityInfoDisplay) {
+      state = Step.EntityInfoEntity;
+    }
+  } else if (state === Step.ImpersonateSearch) {
+    input.placeholder = 'Search user...';
+  } else {
+    input.placeholder = 'Search commands...';
+  }
+
+  renderPills();
 
   let selected: HTMLLIElement | null = null;
   function select(li: HTMLLIElement | null) {
@@ -461,19 +496,29 @@ async function openSpotlight() {
   }
 
   render();
+
+  spotlightCleanup = (save: boolean) => {
+    if (save) {
+      const stateToSave: SpotlightState = {
+        query: input.value,
+        state,
+        pills,
+        selectedEntity,
+      };
+      localStorage.setItem('dl-spotlight-state', JSON.stringify(stateToSave));
+    } else {
+      localStorage.removeItem('dl-spotlight-state');
+    }
+    if (handleSpotlightMessage) {
+      chrome.runtime.onMessage.removeListener(handleSpotlightMessage);
+      handleSpotlightMessage = null;
+    }
+  };
 }
 
 function closeSpotlight(save = false) {
   const el = document.getElementById('dl-spotlight-backdrop');
-  if (el && save) {
-    const inputEl = el.querySelector<HTMLInputElement>('#dl-spotlight-input');
-    if (inputEl) localStorage.setItem('dl-spotlight-query', inputEl.value);
-  } else if (el) {
-    localStorage.removeItem('dl-spotlight-query');
-  }
-  if (handleSpotlightMessage) {
-    chrome.runtime.onMessage.removeListener(handleSpotlightMessage);
-    handleSpotlightMessage = null;
-  }
+  if (spotlightCleanup) spotlightCleanup(save);
+  spotlightCleanup = null;
   if (el) el.remove();
 }
