@@ -75,7 +75,8 @@ chrome.runtime.onMessage.addListener(async function (
         if (impersonationResponse.users.length === 0 || !impersonationResponse.impersonateRequest.canImpersonate)
           return;
 
-        if (impersonationResponse.users.length > 1) {
+        // If no URL was provided this is just a search request. Always return the list.
+        if (!impersonationResponse.impersonateRequest.url || impersonationResponse.users.length > 1) {
           chrome.runtime.sendMessage(<IExtensionMessage>{
             type: 'search',
             category: 'Impersonation',

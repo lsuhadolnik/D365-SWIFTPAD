@@ -447,9 +447,9 @@ async function openSpotlight(options?: { tip?: boolean }) {
       list.style.display = 'none';
       infoPanel.style.display = 'block';
       infoPanel.innerHTML =
-        '<div style="font-weight:bold;margin-bottom:4px;">FetchXML Runner</div>' +
-        '<textarea id="dl-fetchxml" style="width:100%;height:80px;\"></textarea>' +
-        '<div style="font-size:12px;margin-top:4px;">Press Ctrl+Enter to run</div>';
+        '<div class="dl-fetchxml-header">FetchXML Runner</div>' +
+        '<textarea id="dl-fetchxml"></textarea>' +
+        '<div class="dl-fetchxml-help">Press Ctrl+Enter to run</div>';
       input.style.display = 'none';
       const textarea = infoPanel.querySelector<HTMLTextAreaElement>('textarea')!;
       textarea.focus();

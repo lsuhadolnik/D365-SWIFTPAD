@@ -128,6 +128,22 @@
   color: #555;
 }
 
+/* FetchXML runner styles */
+#dl-fetchxml {
+  width: 100%;
+  height: 80px;
+}
+
+.dl-fetchxml-header {
+  font-weight: bold;
+  margin-bottom: 4px;
+}
+
+.dl-fetchxml-help {
+  font-size: 12px;
+  margin-top: 4px;
+}
+
 @keyframes dl-spin {
   0% {
     transform: rotate(0deg);
