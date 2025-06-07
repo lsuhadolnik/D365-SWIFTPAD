@@ -12,8 +12,8 @@
     }
   },
   "name": "Dynamics Launchpad",
-  "author": "Orig: Natraj Yegnaraman, Launchpad: Lovro Suhadolnik",
-  "description": "Quickly perform advanced/hidden actions in Dynamics 365/Power Apps, without bookmarklets.",
+  "author": "LevelUp: Natraj Yegnaraman, Launchpad: Lovro Suhadolnik",
+  "description": "Navigate Dynamics as fast as YOU want.",
   "content_scripts": [
     {
       "matches": [
@@ -52,6 +52,6 @@
     "48": "app/images/icon-48.png",
     "128": "app/images/icon-128.png"
   },
-  "version": "3.6.3",
+  "version": "4.0.0",
   "manifest_version": 3
 }
