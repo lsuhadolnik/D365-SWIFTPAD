@@ -151,6 +151,16 @@ if (process.env.NODE_ENV === 'development') {
 If `npm run build` fails with an error like `Cannot find module '...safer-buffer/safer.js'`,
 make sure you ran `npm install` before building.
 
+### Testing
+
+Run the Cypress test suite with:
+
+```bash
+npm test
+```
+
+The first run downloads the Cypress binary which requires internet access.
+
 ## Credits
 
 - [Bob Guidinger's original idea on Impersonation](https://bguidinger.com/blog/user-impersonation-in-unified-interface-apps)

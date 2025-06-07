@@ -13,7 +13,8 @@
     "build": "vite build",
     "postbuild": "rm app/scripts/levelup.extension.js app/scripts/grid.js app/scripts/organisationdetails.js app/scripts/processes.js app/scripts/userroles.js app/scripts/optionsets.js",
     "lint": "eslint \"app/**/*.ts\"",
-    "pack": "npm run build"
+    "pack": "npm run build",
+    "test": "cypress install --force && cypress run"
   },
   "devDependencies": {
     "@crxjs/vite-plugin": "^2.0.0-beta.33",
@@ -22,11 +23,12 @@
     "@types/xrm": "^9.0.87",
     "@typescript-eslint/eslint-plugin": "^8.33.1",
     "@typescript-eslint/parser": "^8.33.1",
+    "cypress": "^14.4.1",
+    "esbuild": "^0.20.0",
     "eslint": "^9.28.0",
     "eslint-config-prettier": "^10.1.5",
     "eslint-plugin-prettier": "^5.4.1",
     "prettier": "^3.5.3",
-    "esbuild": "^0.20.0",
     "typescript": "^5.8.3",
     "vite": "^6.3.5"
   },
