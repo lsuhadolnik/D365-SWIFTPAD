@@ -2,7 +2,13 @@
 
 ## Summary
 
-Chrome Extension for Dynamics CRM/365/ Power Apps Power users
+D365-Swiftpad is a productivity extension for Dynamics 365 and Power Apps.
+It is a continuation of the popular LevelUp tool by Natraj Yegnaraman with
+additional commands and a Spotlight style launcher.
+Original authorship belongs to Natraj Yegnaraman with updates by Lovro
+Suhadolnik.
+
+Documentation for developers is available in [docs/development.md](docs/development.md).
 
 ![Level up screenshot](/screenshots/Levelup.png)
 

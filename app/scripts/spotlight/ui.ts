@@ -1,48 +1,8 @@
-export interface Command {
-  id: string;
-  category: string;
-  title: string;
-  icon?: string;
-}
+import { Command, EntityInfo, UserInfo, Step, SpotlightState } from './types';
+import { loadCommands, fuzzyMatch } from './commands';
+import { loadEntityMetadata } from './metadata';
 
-interface EntityInfo {
-  logicalName: string;
-  displayName: string;
-  primaryIdAttribute: string;
-  primaryNameAttribute: string;
-  logicalCollectionName: string;
-}
-
-interface UserInfo {
-  userId: string;
-  userName: string;
-  fullName: string;
-}
-
-enum Step {
-  Commands,
-  OpenRecordEntity,
-  OpenRecordId,
-  ImpersonateSearch,
-  FetchXml,
-  EntityInfoDisplay,
-}
-
-let commandsPromise: Promise<Command[]> | null = null;
-let entityMetadataPromise: Promise<EntityInfo[]> | null = null;
-let handleSpotlightMessage: ((message: any) => void) | null = null;
-let spotlightCleanup: ((save: boolean) => void) | null = null;
-let fetchResults: { id: string; name: string }[] = [];
-let fetchEntity = '';
-let recordResults: { id: string; name: string }[] = [];
-
-interface SpotlightState {
-  query: string;
-  state: Step;
-  pills: string[];
-  selectedEntity: string;
-}
-
+// Icon mappings used when rendering the command list
 const commandIcons: Record<string, string> = {
   openRecordSpotlight: 'launch',
   impersonateUserSpotlight: 'person_search',
@@ -67,6 +27,15 @@ const categoryIcons: Record<string, string> = {
   '': 'extension',
 };
 
+let handleSpotlightMessage: ((message: any) => void) | null = null;
+let spotlightCleanup: (() => void) | null = null;
+let fetchResults: { id: string; name: string }[] = [];
+let fetchEntity = '';
+let recordResults: { id: string; name: string }[] = [];
+
+/**
+ * Initialize keyboard shortcut (Ctrl+Shift+P) to open spotlight
+ */
 export function initSpotlight() {
   if (!/\.crm.*\.dynamics\.com$/.test(window.location.hostname)) return;
   document.addEventListener('keydown', async (e) => {
@@ -82,51 +51,13 @@ export function initSpotlight() {
   });
 }
 
-async function loadCommands(): Promise<Command[]> {
-  if (commandsPromise) return commandsPromise;
-  commandsPromise = fetch(chrome.runtime.getURL('app/commands.json')).then((r) => r.json());
-  return commandsPromise;
-}
-
-function fuzzyMatch(query: string, text: string): boolean {
-  query = query.toLowerCase();
-  text = text.toLowerCase();
-  let i = 0;
-  for (const c of query) {
-    i = text.indexOf(c, i);
-    if (i === -1) return false;
-    i++;
-  }
-  return true;
-}
-
-async function loadEntityMetadata(force = false): Promise<EntityInfo[]> {
-  if (entityMetadataPromise && !force) return entityMetadataPromise;
-  const cached = localStorage.getItem('dl-entity-metadata');
-  if (cached && !force) {
-    const list = JSON.parse(cached) as EntityInfo[];
-    list.sort((a, b) => a.displayName.localeCompare(b.displayName));
-    entityMetadataPromise = Promise.resolve(list);
-    return entityMetadataPromise;
-  }
-  const url = `${window.location.origin}/api/data/v9.1/EntityDefinitions?$select=DisplayName,LogicalName,PrimaryIdAttribute,PrimaryNameAttribute,LogicalCollectionName`;
-  entityMetadataPromise = fetch(url)
-    .then((r) => r.json())
-    .then((d) =>
-      d.value.map((v: any) => ({
-        logicalName: v.LogicalName,
-        displayName: v.DisplayName?.UserLocalizedLabel?.Label || v.LogicalName,
-        primaryIdAttribute: v.PrimaryIdAttribute,
-        primaryNameAttribute: v.PrimaryNameAttribute,
-        logicalCollectionName: v.LogicalCollectionName,
-      }))
-    )
-    .then((list: EntityInfo[]) => {
-      list.sort((a, b) => a.displayName.localeCompare(b.displayName));
-      localStorage.setItem('dl-entity-metadata', JSON.stringify(list));
-      return list;
-    });
-  return entityMetadataPromise;
+/** Open entity list in a new tab */
+function openEntityList(entity: string) {
+  const xrm = (window as any).Xrm;
+  const clientUrl =
+    xrm?.Utility?.getGlobalContext?.()?.getCurrentAppUrl?.() || xrm?.Page?.context?.getClientUrl?.() || location.origin;
+  const base = clientUrl + (clientUrl.includes('appid') ? '&' : '/main.aspx?');
+  window.open(`${base}etn=${entity}&pagetype=entitylist`);
 }
 
 async function openSpotlight(options?: { tip?: boolean }) {
@@ -296,27 +227,19 @@ async function openSpotlight(options?: { tip?: boolean }) {
         li.addEventListener('click', () => {
           selectedEntity = ent.logicalName;
           pills.push(ent.displayName);
-          if (state === Step.OpenRecordEntity) {
-            state = Step.OpenRecordId;
-            input.value = '';
-            input.placeholder = 'Enter GUID or start typing the name of the entity';
-            list.innerHTML = '';
-            renderPills();
-          } else {
-            state = Step.EntityInfoDisplay;
-            infoPanel.innerHTML = `
-              <div><strong>${ent.displayName}</strong></div>
-              <div>Logical: ${ent.logicalName}</div>
-              <div>Primary Id: ${ent.primaryIdAttribute}</div>
-              <div>Primary Name: ${ent.primaryNameAttribute}</div>`;
-            list.style.display = 'none';
-            infoPanel.style.display = 'block';
-            renderPills();
-          }
+          state = Step.OpenRecordId;
+          input.value = '';
+          input.placeholder = 'Enter GUID or start typing the name of the entity';
+          list.innerHTML = '';
+          renderPills();
+        });
+        // Double click directly opens the list view
+        li.addEventListener('dblclick', () => {
+          closeSpotlight();
+          openEntityList(ent.logicalName);
         });
         list.append(li);
       });
-
       if (state === Step.OpenRecordEntity) {
         const typed = input.value.trim();
         if (typed && !metadata.some((m) => m.logicalName.toLowerCase() === typed.toLowerCase())) {
@@ -343,13 +266,7 @@ async function openSpotlight(options?: { tip?: boolean }) {
       openListLi.addEventListener('mouseenter', () => select(openListLi));
       openListLi.addEventListener('click', () => {
         closeSpotlight();
-        const xrm = (window as any).Xrm;
-        const clientUrl =
-          xrm?.Utility?.getGlobalContext?.()?.getCurrentAppUrl?.() ||
-          xrm?.Page?.context?.getClientUrl?.() ||
-          location.origin;
-        const base = clientUrl + (clientUrl.includes('appid') ? '&' : '/main.aspx?');
-        window.open(`${base}etn=${selectedEntity}&pagetype=entitylist`);
+        openEntityList(selectedEntity);
       });
       list.append(openListLi);
 
@@ -426,18 +343,16 @@ async function openSpotlight(options?: { tip?: boolean }) {
       const info = metadata.find((m) => m.logicalName === selectedEntity);
       if (info) {
         if (/^[{]?[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}[}]?$/.test(q)) {
-          recordResults = [{ id: q.replace(/[{}]/g, ''), name: 'Open Record' }];
-        } else if (q.length > 1) {
-          progressText.textContent = 'Searching...';
+          recordResults = [{ id: q.replace(/[{}]/g, ''), name: q.replace(/[{}]/g, '') }];
+        } else if (q.length > 2) {
+          progressText.textContent = 'Loading...';
           progress.style.display = 'block';
-          const fetchXml = `<fetch top='5'><entity name='${selectedEntity}'><attribute name='${info.primaryNameAttribute}'/><attribute name='${info.primaryIdAttribute}'/><filter><condition attribute='${info.primaryNameAttribute}' operator='like' value='%${q}%' /></filter></entity></fetch>`;
-          const resp = await fetch(
-            `${location.origin}/api/data/v9.1/${info.logicalCollectionName}?fetchXml=${encodeURIComponent(fetchXml)}`
-          );
-          const data = await resp.json();
-          recordResults = (data.value || []).map((r: any) => ({
-            id: r[info.primaryIdAttribute],
-            name: r[info.primaryNameAttribute],
+          const query = encodeURIComponent(q);
+          const url = `${location.origin}/api/data/v9.1/${info.logicalCollectionName}?$select=${info.primaryIdAttribute},${info.primaryNameAttribute}&$filter=contains(${info.primaryNameAttribute},'${query}')&$top=20`;
+          const data = await fetch(url).then((r) => r.json());
+          recordResults = data.value.map((v: any) => ({
+            id: v[info.primaryIdAttribute],
+            name: v[info.primaryNameAttribute],
           }));
           progress.style.display = 'none';
         } else {
@@ -446,84 +361,31 @@ async function openSpotlight(options?: { tip?: boolean }) {
         filtered = recordResults;
       }
     } else if (state === Step.ImpersonateSearch) {
-      if (q) {
-        progressText.textContent = 'Loading users...';
-        progress.style.display = 'block';
-        chrome.runtime.sendMessage({
-          type: 'search',
-          category: 'Impersonation',
-          content: { userName: q },
-        });
-      } else {
-        users = [];
-        filtered = [];
-        progress.style.display = 'none';
-      }
+      const ql = q.toLowerCase();
+      filtered = users.filter((u) => u.fullName.toLowerCase().includes(ql) || u.userName.toLowerCase().includes(ql));
+    } else if (state === Step.FetchXml) {
+      const ql = q.toLowerCase();
+      filtered = fetchResults.filter((r) => r.name.toLowerCase().includes(ql) || r.id.toLowerCase().includes(ql));
     }
     render();
   });
-  input.addEventListener('keydown', async (e) => {
-    if (state === Step.OpenRecordId && e.key === 'Enter') {
-      e.preventDefault();
-      e.stopImmediatePropagation();
-      if (input.value.trim()) {
-        closeSpotlight();
-        chrome.runtime.sendMessage({
-          type: 'openRecordQuick',
-          category: 'Navigation',
-          content: { entity: selectedEntity, id: input.value.trim() },
-        });
-      }
-      return;
-    }
 
-    if (e.key === 'Backspace' && input.value === '' && pills.length > 0) {
-      pills.pop();
-      if (state === Step.OpenRecordId) {
-        state = Step.OpenRecordEntity;
-        input.placeholder = 'Search entity...';
-        filtered = metadata;
-      } else if (state === Step.EntityInfoDisplay) {
-        state = Step.Commands;
-        infoPanel.style.display = 'none';
-        list.style.display = '';
-        filtered = commands;
-      } else if (state === Step.FetchXml) {
-        state = Step.Commands;
-        infoPanel.style.display = 'none';
-        list.style.display = '';
-        input.style.display = '';
-        filtered = commands;
-      } else {
-        state = Step.Commands;
-        filtered = commands;
-      }
-      renderPills();
-      render();
-      return;
-    }
-
-    if (e.key === 'ArrowDown') {
-      e.preventDefault();
-      e.stopImmediatePropagation();
-      if (selected && selected.nextElementSibling) select(selected.nextElementSibling as HTMLLIElement);
-    } else if (e.key === 'ArrowUp') {
-      e.preventDefault();
-      e.stopImmediatePropagation();
-      if (selected && selected.previousElementSibling) select(selected.previousElementSibling as HTMLLIElement);
-    } else if (e.key === 'Enter') {
-      e.preventDefault();
-      e.stopImmediatePropagation();
+  input.addEventListener('keydown', (ev) => {
+    if (ev.key === 'ArrowDown') {
+      select((selected?.nextElementSibling as HTMLLIElement) || list.firstElementChild);
+      ev.preventDefault();
+    } else if (ev.key === 'ArrowUp') {
+      select((selected?.previousElementSibling as HTMLLIElement) || list.lastElementChild);
+      ev.preventDefault();
+    } else if (ev.key === 'Enter') {
       if (selected && state === Step.Commands) {
-        executeCommand({
-          id: selected.dataset.id!,
-          category: selected.dataset.category!,
-          title: selected.textContent || '',
-        });
+        const id = selected.dataset.id!;
+        const cmd = commands.find((c) => c.id === id)!;
+        executeCommand(cmd);
       } else if (selected && state === Step.OpenRecordEntity) {
-        (selected as HTMLElement).click();
-      } else if (selected && state === Step.ImpersonateSearch) {
-        (selected as HTMLElement).click();
+        // Enter opens the list directly
+        openEntityList((selected.textContent || '').split(' ')[0]);
+        closeSpotlight();
       } else if (selected && state === Step.EntityInfoDisplay) {
         (selected as HTMLElement).click();
       } else if (selected && state === Step.OpenRecordId) {
@@ -567,7 +429,7 @@ async function openSpotlight(options?: { tip?: boolean }) {
       infoPanel.style.display = 'block';
       infoPanel.innerHTML =
         '<div style="font-weight:bold;margin-bottom:4px;">FetchXML Runner</div>' +
-        '<textarea id="dl-fetchxml" style="width:100%;height:80px;"></textarea>' +
+        '<textarea id="dl-fetchxml" style="width:100%;height:80px;\"></textarea>' +
         '<div style="font-size:12px;margin-top:4px;">Press Ctrl+Enter to run</div>';
       input.style.display = 'none';
       const textarea = infoPanel.querySelector<HTMLTextAreaElement>('textarea')!;
@@ -674,13 +536,14 @@ async function openSpotlight(options?: { tip?: boolean }) {
   };
 }
 
-function closeSpotlight() {
+export function closeSpotlight() {
   const el = document.getElementById('dl-spotlight-backdrop');
   if (spotlightCleanup) spotlightCleanup();
   spotlightCleanup = null;
   if (el) el.remove();
 }
 
+// Allow other parts of the extension to programmatically open spotlight
 window.addEventListener('openSpotlight', async (e) => {
   const detail = (e as CustomEvent).detail as { tip?: boolean } | undefined;
   if (!document.getElementById('dl-spotlight-backdrop')) {
