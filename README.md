@@ -10,6 +10,9 @@ Documentation for developers is available in [docs/development.md](docs/developm
 
 ![Level up screenshot](/screenshots/Screenshot Main.png)
 
+## Notice: Does not work with On-Prem Dynamics CRM.
+And there's no plan at the moment to support this.
+
 ## Usage
 
 For now:
