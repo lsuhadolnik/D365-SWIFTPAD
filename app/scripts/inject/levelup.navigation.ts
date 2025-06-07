@@ -175,6 +175,11 @@ export class Navigation {
   }
 
   reloadData() {
+    //@ts-ignore
+    if (Xrm.Page?.data?.refresh) {
+      //@ts-ignore
+      return Xrm.Page.data.refresh(false);
+    }
     window.location.reload();
   }
 

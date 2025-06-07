@@ -21,7 +21,7 @@
   },
   {
     "id": "myUserRecord",
-    "category": "",
+    "category": "Navigation",
     "title": "My User Record"
   },
   {
@@ -287,11 +287,16 @@
   {
     "id": "entityInfoSpotlight",
     "category": "Navigation",
-    "title": "Show Entity Info"
+    "title": "Current record details"
   },
   {
     "id": "reloadData",
     "category": "Navigation",
     "title": "Reload Data"
+  },
+  {
+    "id": "runFetchXmlSpotlight",
+    "category": "API",
+    "title": "Run FetchXML"
   }
 ]

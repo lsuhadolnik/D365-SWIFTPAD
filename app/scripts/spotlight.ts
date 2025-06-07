@@ -10,6 +10,7 @@ interface EntityInfo {
   displayName: string;
   primaryIdAttribute: string;
   primaryNameAttribute: string;
+  logicalCollectionName: string;
 }
 
 interface UserInfo {
@@ -23,7 +24,7 @@ enum Step {
   OpenRecordEntity,
   OpenRecordId,
   ImpersonateSearch,
-  EntityInfoEntity,
+  FetchXml,
   EntityInfoDisplay,
 }
 
@@ -31,6 +32,9 @@ let commandsPromise: Promise<Command[]> | null = null;
 let entityMetadataPromise: Promise<EntityInfo[]> | null = null;
 let handleSpotlightMessage: ((message: any) => void) | null = null;
 let spotlightCleanup: ((save: boolean) => void) | null = null;
+let fetchResults: { id: string; name: string }[] = [];
+let fetchEntity = '';
+let recordResults: { id: string; name: string }[] = [];
 
 interface SpotlightState {
   query: string;
@@ -47,6 +51,7 @@ const commandIcons: Record<string, string> = {
   openMakePowerApps: 'open_in_new',
   entityInfoSpotlight: 'info',
   reloadData: 'refresh',
+  runFetchXmlSpotlight: 'code',
 };
 
 const categoryIcons: Record<string, string> = {
@@ -63,6 +68,7 @@ const categoryIcons: Record<string, string> = {
 };
 
 export function initSpotlight() {
+  if (!/\.crm.*\.dynamics\.com$/.test(window.location.hostname)) return;
   document.addEventListener('keydown', async (e) => {
     if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.code === 'KeyP') {
       e.preventDefault();
@@ -101,7 +107,7 @@ async function loadEntityMetadata(force = false): Promise<EntityInfo[]> {
     entityMetadataPromise = Promise.resolve(JSON.parse(cached));
     return entityMetadataPromise;
   }
-  const url = `${window.location.origin}/api/data/v9.1/EntityDefinitions?$select=DisplayName,LogicalName,PrimaryIdAttribute,PrimaryNameAttribute`;
+  const url = `${window.location.origin}/api/data/v9.1/EntityDefinitions?$select=DisplayName,LogicalName,PrimaryIdAttribute,PrimaryNameAttribute,LogicalCollectionName`;
   entityMetadataPromise = fetch(url)
     .then((r) => r.json())
     .then((d) =>
@@ -110,6 +116,7 @@ async function loadEntityMetadata(force = false): Promise<EntityInfo[]> {
         displayName: v.DisplayName?.UserLocalizedLabel?.Label || v.LogicalName,
         primaryIdAttribute: v.PrimaryIdAttribute,
         primaryNameAttribute: v.PrimaryNameAttribute,
+        logicalCollectionName: v.LogicalCollectionName,
       }))
     )
     .then((list: EntityInfo[]) => {
@@ -182,21 +189,19 @@ async function openSpotlight() {
   let users: UserInfo[] = [];
   const pills: string[] = [...stateObj.pills];
 
-  if (
-    state === Step.OpenRecordEntity ||
-    state === Step.OpenRecordId ||
-    state === Step.EntityInfoEntity ||
-    state === Step.EntityInfoDisplay
-  ) {
+  if (state === Step.FetchXml) {
+    state = Step.Commands;
+  }
+
+  if (state === Step.OpenRecordEntity || state === Step.OpenRecordId) {
     progressText.textContent = 'Loading metadata...';
     progress.style.display = 'block';
     metadata = await loadEntityMetadata();
     progress.style.display = 'none';
     filtered = metadata;
     input.placeholder = state === Step.OpenRecordId ? 'Record GUID...' : 'Search entity...';
-    if (state === Step.EntityInfoDisplay) {
-      state = Step.EntityInfoEntity;
-    }
+  } else if (state === Step.EntityInfoDisplay) {
+    input.placeholder = '';
   } else if (state === Step.ImpersonateSearch) {
     input.placeholder = 'Search user...';
   } else {
@@ -256,7 +261,7 @@ async function openSpotlight() {
         const icon = document.createElement('span');
         icon.className = 'material-icons';
         icon.textContent = cmd.icon || commandIcons[cmd.id] || categoryIcons[cmd.category] || 'chevron_right';
-        icon.style.marginRight = '8px';
+        icon.style.cssText = 'margin-right:8px;color:#a631af;font-size:15px;';
         const text = document.createElement('span');
         text.textContent = cmd.title;
         li.append(icon, text);
@@ -268,7 +273,7 @@ async function openSpotlight() {
         li.addEventListener('click', () => executeCommand(cmd));
         list.append(li);
       });
-    } else if (state === Step.OpenRecordEntity || state === Step.EntityInfoEntity) {
+    } else if (state === Step.OpenRecordEntity) {
       (filtered as EntityInfo[]).slice(0, 20).forEach((ent) => {
         const li = document.createElement('li');
         li.innerHTML = `${ent.displayName} <code style="background:#f0f0f0;padding:2px 4px;border-radius:4px;font-family:monospace;">${ent.logicalName}</code>`;
@@ -317,6 +322,22 @@ async function openSpotlight() {
           list.append(li);
         }
       }
+    } else if (state === Step.OpenRecordId) {
+      (filtered as { id: string; name: string }[]).slice(0, 20).forEach((r) => {
+        const li = document.createElement('li');
+        li.textContent = `${r.name} (${r.id})`;
+        li.style.cssText = 'padding:6px 12px;cursor:pointer;border-radius:6px;font-size:14px;';
+        li.addEventListener('mouseenter', () => select(li));
+        li.addEventListener('click', () => {
+          closeSpotlight();
+          chrome.runtime.sendMessage({
+            type: 'openRecordQuick',
+            category: 'Navigation',
+            content: { entity: selectedEntity, id: r.id },
+          });
+        });
+        list.append(li);
+      });
     } else if (state === Step.ImpersonateSearch) {
       (filtered as UserInfo[]).slice(0, 20).forEach((u) => {
         const li = document.createElement('li');
@@ -333,6 +354,22 @@ async function openSpotlight() {
         });
         list.append(li);
       });
+    } else if (state === Step.FetchXml) {
+      (filtered as { id: string; name: string }[]).slice(0, 20).forEach((r) => {
+        const li = document.createElement('li');
+        li.textContent = `${r.name} (${r.id})`;
+        li.style.cssText = 'padding:6px 12px;cursor:pointer;border-radius:6px;font-size:14px;';
+        li.addEventListener('mouseenter', () => select(li));
+        li.addEventListener('click', () => {
+          closeSpotlight();
+          chrome.runtime.sendMessage({
+            type: 'openRecordQuick',
+            category: 'Navigation',
+            content: { entity: fetchEntity, id: r.id },
+          });
+        });
+        list.append(li);
+      });
     }
     select(list.firstElementChild as HTMLLIElement | null);
   }
@@ -341,8 +378,31 @@ async function openSpotlight() {
     const q = input.value.trim();
     if (state === Step.Commands) {
       filtered = q ? commands.filter((c) => fuzzyMatch(q, c.title)) : commands;
-    } else if (state === Step.OpenRecordEntity || state === Step.EntityInfoEntity) {
+    } else if (state === Step.OpenRecordEntity) {
       filtered = metadata.filter((m) => fuzzyMatch(q, m.displayName) || fuzzyMatch(q, m.logicalName));
+    } else if (state === Step.OpenRecordId) {
+      const info = metadata.find((m) => m.logicalName === selectedEntity);
+      if (info) {
+        if (/^[{]?[0-9a-fA-F]{8}-/.test(q)) {
+          recordResults = [];
+        } else if (q.length > 1) {
+          progressText.textContent = 'Searching...';
+          progress.style.display = 'block';
+          const fetchXml = `<fetch top='5'><entity name='${selectedEntity}'><attribute name='${info.primaryNameAttribute}'/><attribute name='${info.primaryIdAttribute}'/><filter><condition attribute='${info.primaryNameAttribute}' operator='like' value='%${q}%' /></filter></entity></fetch>`;
+          const resp = await fetch(
+            `${location.origin}/api/data/v9.1/${info.logicalCollectionName}?fetchXml=${encodeURIComponent(fetchXml)}`
+          );
+          const data = await resp.json();
+          recordResults = (data.value || []).map((r: any) => ({
+            id: r[info.primaryIdAttribute],
+            name: r[info.primaryNameAttribute],
+          }));
+          progress.style.display = 'none';
+        } else {
+          recordResults = [];
+        }
+        filtered = recordResults;
+      }
     } else if (state === Step.ImpersonateSearch) {
       if (q) {
         progressText.textContent = 'Loading users...';
@@ -382,10 +442,16 @@ async function openSpotlight() {
         input.placeholder = 'Search entity...';
         filtered = metadata;
       } else if (state === Step.EntityInfoDisplay) {
-        state = Step.EntityInfoEntity;
+        state = Step.Commands;
         infoPanel.style.display = 'none';
         list.style.display = '';
-        filtered = metadata;
+        filtered = commands;
+      } else if (state === Step.FetchXml) {
+        state = Step.Commands;
+        infoPanel.style.display = 'none';
+        list.style.display = '';
+        input.style.display = '';
+        filtered = commands;
       } else {
         state = Step.Commands;
         filtered = commands;
@@ -416,7 +482,11 @@ async function openSpotlight() {
         (selected as HTMLElement).click();
       } else if (selected && state === Step.ImpersonateSearch) {
         (selected as HTMLElement).click();
-      } else if (selected && state === Step.EntityInfoEntity) {
+      } else if (selected && state === Step.EntityInfoDisplay) {
+        (selected as HTMLElement).click();
+      } else if (selected && state === Step.OpenRecordId) {
+        (selected as HTMLElement).click();
+      } else if (selected && state === Step.FetchXml) {
         (selected as HTMLElement).click();
       }
     }
@@ -448,16 +518,70 @@ async function openSpotlight() {
       renderPills();
       render();
       return;
+    } else if (cmd.id === 'runFetchXmlSpotlight') {
+      state = Step.FetchXml;
+      pills.push('FetchXML');
+      list.style.display = 'none';
+      infoPanel.style.display = 'block';
+      infoPanel.innerHTML = '<textarea id="dl-fetchxml" style="width:100%;height:80px;"></textarea>';
+      input.style.display = 'none';
+      const textarea = infoPanel.querySelector<HTMLTextAreaElement>('textarea')!;
+      textarea.focus();
+      textarea.addEventListener('keydown', async (ev) => {
+        if (ev.key === 'Enter' && (ev.ctrlKey || ev.metaKey)) {
+          ev.preventDefault();
+          progressText.textContent = 'Loading results...';
+          progress.style.display = 'block';
+          const xml = textarea.value.trim();
+          const entityMatch = xml.match(/<entity name=['"](.*?)['"]>/);
+          const entity = entityMatch ? entityMatch[1] : '';
+          fetchEntity = entity;
+          if (!entity) {
+            progress.style.display = 'none';
+            return;
+          }
+          const meta = (await loadEntityMetadata()).find((m) => m.logicalName === entity);
+          const encoded = encodeURIComponent(xml);
+          const resp = await fetch(
+            `${location.origin}/api/data/v9.1/${meta?.logicalCollectionName || entity + 's'}?fetchXml=${encoded}`
+          );
+          const data = await resp.json();
+          const primary = meta?.primaryNameAttribute || 'name';
+          const idAttr = meta?.primaryIdAttribute || `${entity}id`;
+          fetchResults = (data.value || []).map((r: any) => ({
+            id: r[idAttr],
+            name: r[primary] || r[idAttr],
+          }));
+          filtered = fetchResults;
+          progress.style.display = 'none';
+          list.style.display = '';
+          infoPanel.style.display = 'none';
+          input.style.display = '';
+          input.value = '';
+          state = Step.FetchXml;
+          render();
+        }
+      });
+      return;
     } else if (cmd.id === 'entityInfoSpotlight') {
-      state = Step.EntityInfoEntity;
-      pills.push('Info');
-      progressText.textContent = 'Loading metadata...';
-      progress.style.display = 'block';
-      metadata = await loadEntityMetadata();
-      progress.style.display = 'none';
-      filtered = metadata;
-      input.placeholder = 'Search entity...';
-      input.value = '';
+      state = Step.EntityInfoDisplay;
+      pills.push('Details');
+      const logical = (window as any).Xrm?.Page?.data?.entity?.getEntityName() || '';
+      const id = (window as any).Xrm?.Page?.data?.entity?.getId() || '';
+      let name = '';
+      if (logical) {
+        progressText.textContent = 'Loading metadata...';
+        progress.style.display = 'block';
+        metadata = await loadEntityMetadata();
+        const ent = metadata.find((m) => m.logicalName === logical);
+        if (ent) {
+          name = (window as any).Xrm?.Page?.getAttribute(ent.primaryNameAttribute)?.getValue() || '';
+        }
+        progress.style.display = 'none';
+      }
+      infoPanel.innerHTML = `<div><strong>${logical}</strong></div><div>Id: ${id}</div><div>Name: ${name}</div>`;
+      list.style.display = 'none';
+      infoPanel.style.display = 'block';
       renderPills();
       render();
       return;
