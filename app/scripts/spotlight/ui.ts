@@ -143,7 +143,7 @@ async function openSpotlight(options?: { tip?: boolean }) {
     filtered = metadata;
     input.placeholder =
       state === Step.OpenRecordId ? 'Enter GUID or start typing the name of the entity' : 'Search entity...';
-  } else if (state === Step.EntityInfoDisplay) {
+  } else if (state === Step.EntityInfoDisplay || state === Step.EnvironmentInfoDisplay) {
     input.placeholder = '';
   } else if (state === Step.ImpersonateSearch) {
     input.placeholder = 'Search user...';
@@ -207,6 +207,9 @@ async function openSpotlight(options?: { tip?: boolean }) {
       renderUsers();
     } else if (state === Step.FetchXml) {
       renderFetchResults();
+    } else if (state === Step.EnvironmentInfoDisplay) {
+      list.style.display = 'none';
+      infoPanel.style.display = 'block';
     }
     select(list.firstElementChild as HTMLLIElement | null);
   }
@@ -389,6 +392,8 @@ async function openSpotlight(options?: { tip?: boolean }) {
     } else if (state === Step.FetchXml) {
       const ql = q.toLowerCase();
       filtered = fetchResults.filter((r) => r.name.toLowerCase().includes(ql) || r.id.toLowerCase().includes(ql));
+    } else if (state === Step.EnvironmentInfoDisplay) {
+      filtered = [];
     }
     render();
   });
@@ -512,6 +517,43 @@ async function openSpotlight(options?: { tip?: boolean }) {
       infoPanel.innerHTML = `<div><strong>${logical}</strong></div><div>Id: ${id}</div><div>Name: ${name}</div>`;
       list.style.display = 'none';
       infoPanel.style.display = 'block';
+      renderPills();
+      render();
+      return;
+    } else if (cmd.id === 'environmentDetails') {
+      state = Step.EnvironmentInfoDisplay;
+      pills.push('Environment');
+      progressText.textContent = 'Loading details...';
+      progress.style.display = 'block';
+      try {
+        const resp = await fetch(`${location.origin}/api/data/v9.1/RetrieveCurrentOrganization(AccessType='Default')`);
+        const data = await resp.json();
+        const env = data.Detail || {};
+        const appId = new URLSearchParams(location.search).get('appid');
+        if (appId) env.AppId = appId;
+        infoPanel.innerHTML = Object.keys(env)
+          .map((k) => `<div>${k}: <span class="dl-copy" data-val="${env[k]}">${env[k]}</span></div>`)
+          .join('');
+        infoPanel.querySelectorAll<HTMLSpanElement>('.dl-copy').forEach((el) => {
+          el.addEventListener('click', () => {
+            const val = el.dataset.val || '';
+            navigator.clipboard.writeText(val).catch(() => {
+              const inp = document.createElement('input');
+              inp.value = val;
+              document.body.append(inp);
+              inp.select();
+              document.execCommand('copy');
+              inp.remove();
+            });
+          });
+        });
+      } finally {
+        progress.style.display = 'none';
+      }
+      list.style.display = 'none';
+      infoPanel.style.display = 'block';
+      input.placeholder = '';
+      input.value = '';
       renderPills();
       render();
       return;

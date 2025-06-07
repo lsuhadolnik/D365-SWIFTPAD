@@ -144,6 +144,12 @@
   margin-top: 4px;
 }
 
+.dl-copy {
+  cursor: pointer;
+  user-select: all;
+  font-family: monospace;
+}
+
 @keyframes dl-spin {
   0% {
     transform: rotate(0deg);
