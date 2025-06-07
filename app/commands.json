@@ -42,11 +42,6 @@
     "title": "Environment Details"
   },
   {
-    "id": "environmentSettings",
-    "category": "Settings",
-    "title": "Environment Settings"
-  },
-  {
     "id": "myRoles",
     "category": "myRoles",
     "title": "My Roles"
