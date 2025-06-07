@@ -243,6 +243,8 @@ async function openSpotlight(options?: { tip?: boolean }) {
         state = Step.OpenRecordId;
         input.value = '';
         input.placeholder = 'Enter GUID or start typing the name of the entity';
+        recordResults = [];
+        filtered = recordResults;
         list.innerHTML = '';
         renderPills();
         render();
@@ -267,6 +269,8 @@ async function openSpotlight(options?: { tip?: boolean }) {
           state = Step.OpenRecordId;
           input.value = '';
           input.placeholder = 'Enter GUID or start typing the name of the entity';
+          recordResults = [];
+          filtered = recordResults;
           list.innerHTML = '';
           renderPills();
           render();
