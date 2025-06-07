@@ -539,6 +539,7 @@ async function openSpotlight(options?: { tip?: boolean }) {
     } else if (cmd.id === 'myRoles') {
       state = Step.EnvironmentInfoDisplay;
       pills.push('Roles');
+      infoPanel.innerHTML = '';
       progressText.textContent = 'Loading roles...';
       progress.style.display = 'block';
       try {
@@ -554,7 +555,11 @@ async function openSpotlight(options?: { tip?: boolean }) {
             (r: any) =>
               `<div class="dl-info-row">${r.name}: <span class="dl-copy dl-code" data-val="${r.roleid}">${r.roleid}</span></div>`
           );
-          infoPanel.innerHTML = `<div class="dl-copy-hint">Click to Copy</div>${rows.join('')}`;
+          if (rows.length) {
+            infoPanel.innerHTML = `<div class="dl-copy-hint">Click to Copy</div>${rows.join('')}`;
+          } else {
+            infoPanel.textContent = 'No security roles found';
+          }
           input.style.display = 'none';
           infoPanel.querySelectorAll<HTMLSpanElement>('.dl-copy').forEach((el) => {
             el.addEventListener('click', () => {
@@ -570,6 +575,8 @@ async function openSpotlight(options?: { tip?: boolean }) {
               showToast('Copied to Clipboard');
             });
           });
+        } else {
+          infoPanel.textContent = 'No security roles found';
         }
       } finally {
         progress.style.display = 'none';

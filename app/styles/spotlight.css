@@ -93,10 +93,13 @@
 }
 
 .dl-code {
-  border: 1px solid #ccc;
+  border: 1px solid #afafaf;
   padding: 2px 4px;
   border-radius: 4px;
   font-family: monospace;
+  color: #771899;
+  background: #ffffff40;
+  margin: 0 5px 0 5px;
 }
 
 .dl-spinner {
