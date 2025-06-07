@@ -542,7 +542,10 @@ async function openSpotlight(options?: { tip?: boolean }) {
       progressText.textContent = 'Loading roles...';
       progress.style.display = 'block';
       try {
-        const ids = (window as any).Xrm?.Page?.context?.getUserRoles?.() || [];
+        const ids =
+          (window as any).Xrm?.Utility?.getGlobalContext?.()?.userSettings?.securityRoles ||
+          (window as any).Xrm?.Page?.context?.getUserRoles?.() ||
+          [];
         if (ids.length) {
           const filter = ids.map((id: string) => `roleid eq ${id}`).join(' or ');
           const resp = await fetch(`${location.origin}/api/data/v9.1/roles?$select=name,roleid&$filter=${filter}`);
@@ -581,7 +584,10 @@ async function openSpotlight(options?: { tip?: boolean }) {
     } else if (cmd.id === 'entityMetadata') {
       state = Step.EnvironmentInfoDisplay;
       pills.push('Metadata');
-      const entity = (window as any).Xrm?.Page?.data?.entity?.getEntityName?.() || '';
+      const entity =
+        (window as any).Xrm?.Page?.data?.entity?.getEntityName?.() ||
+        (window as any).Xrm?.Utility?.getPageContext?.()?.input?.entityName ||
+        '';
       if (!entity) {
         showToast('No entity context');
         return;
