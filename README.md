@@ -1,3 +1,5 @@
+![Swiftpad Promo](/screenshots/promo.png)
+
 ## Summary
 
 D365-Swiftpad is a productivity extension for Dynamics 365 and Power Apps.
