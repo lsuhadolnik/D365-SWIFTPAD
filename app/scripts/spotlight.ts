@@ -265,7 +265,9 @@ async function openSpotlight(options?: { tip?: boolean }) {
     infoPanel.style.display = 'none';
     list.style.display = '';
     if (state === Step.Commands) {
-      (filtered as Command[]).slice(0, 20).forEach((cmd) => {
+      const showAll = input.value.trim() === '';
+      const cmds = showAll ? (filtered as Command[]) : (filtered as Command[]).slice(0, 20);
+      cmds.forEach((cmd) => {
         const li = document.createElement('li');
         const icon = document.createElement('span');
         icon.className = 'material-icons';
