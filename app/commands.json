@@ -41,11 +41,6 @@
     "title": "Environment Details"
   },
   {
-    "id": "myRoles",
-    "category": "myRoles",
-    "title": "My Roles"
-  },
-  {
     "id": "allUserRoles",
     "category": "allUserRoles",
     "title": "Users and Roles"
@@ -59,11 +54,6 @@
     "id": "myMailbox",
     "category": "Navigation",
     "title": "My Mailbox"
-  },
-  {
-    "id": "entityMetadata",
-    "category": "",
-    "title": "Entity Metadata"
   },
 
   {
