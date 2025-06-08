@@ -208,11 +208,14 @@ export class Navigation {
     const title = document.createElement('span');
     title.textContent = 'Auto refresh';
     title.style.marginRight = '8px';
+    const indicator = document.createElement('div');
+    indicator.className = 'dl-indicator';
     const spinner = document.createElement('div');
     spinner.className = 'dl-spinner';
     const tick = document.createElement('span');
     tick.textContent = '✓';
     tick.className = 'dl-tick';
+    indicator.append(spinner, tick);
     const btnWrap = document.createElement('div');
     btnWrap.style.display = 'flex';
     btnWrap.style.gap = '4px';
@@ -242,17 +245,16 @@ export class Navigation {
         this.autoReloadSelected.classList.remove('selected');
         this.autoReloadSelected = null;
       }
+      toast.remove();
     });
     btnWrap.append(stopBtn);
-    toast.append(title, spinner, tick, btnWrap);
+    toast.append(title, indicator, btnWrap);
     document.body.append(toast);
 
     const showTick = () => {
-      spinner.style.display = 'none';
-      tick.style.display = 'flex';
+      tick.style.opacity = '1';
       setTimeout(() => {
-        tick.style.display = 'none';
-        spinner.style.display = 'block';
+        tick.style.opacity = '0';
       }, 500);
     };
 
