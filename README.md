@@ -10,14 +10,14 @@ Suhadolnik.
 
 Documentation for developers is available in [docs/development.md](docs/development.md).
 
-![Level up screenshot](/screenshots/Screenshot Main.png)
+![Swiftpad Screenshot](/screenshots/Screenshot%20Main.png)
 
 ## Notice: Does not work with On-Prem Dynamics CRM.
 And there's no plan at the moment to support this.
 
 ## Usage
 
-Download the latest build from this repository's [releases](https://github.com/your-username/Dynamics-Launchpad/releases) page and unzip it. Then load the folder in `chrome://extensions` using "Load unpacked".
+Download the latest build from this repository's [releases](https://github.com/lsuhadolnik/Dynamics-Launchpad/releases) page and unzip it. Then load the folder in `chrome://extensions` using "Load unpacked".
 
 Alternatively build from source:
 - Clone this repo
