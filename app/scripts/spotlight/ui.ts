@@ -15,6 +15,7 @@ const commandIcons: Record<string, string> = {
   openMakePowerApps: 'open_in_new',
   entityInfoSpotlight: 'info',
   reloadData: 'refresh',
+  autoReload: 'autorenew',
   runFetchXmlSpotlight: 'code',
 };
 
