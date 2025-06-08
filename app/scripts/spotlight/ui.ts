@@ -240,6 +240,7 @@ async function openSpotlight(options?: { tip?: boolean }) {
   }
 
   function renderEntities() {
+    debugger;
     (filtered as EntityInfo[]).slice(0, 20).forEach((ent) => {
       const li = document.createElement('li');
       li.innerHTML = `${ent.displayName} <code class="dl-code">${ent.logicalName}</code>`;
@@ -289,6 +290,7 @@ async function openSpotlight(options?: { tip?: boolean }) {
   }
 
   function renderRecords() {
+    debugger;
     const openListLi = document.createElement('li');
     openListLi.textContent = `Open ${selectedEntity} list`;
     openListLi.className = 'dl-listitem';
@@ -426,9 +428,7 @@ async function openSpotlight(options?: { tip?: boolean }) {
         const cmd = commands.find((c) => c.id === id)!;
         executeCommand(cmd);
       } else if (selected && state === Step.OpenRecordEntity) {
-        // Enter opens the list directly
-        openEntityList((selected.textContent || '').split(' ')[0]);
-        closeSpotlight();
+        (selected as HTMLElement).click();
       } else if (selected && state === Step.EntityInfoDisplay) {
         (selected as HTMLElement).click();
       } else if (selected && state === Step.OpenRecordId) {
