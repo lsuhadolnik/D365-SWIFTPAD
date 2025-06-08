@@ -2,9 +2,12 @@
  * Spotlight UI implementation. Handles keyboard activation, rendering
  * of results and command execution.
  */
-import { Command, EntityInfo, UserInfo, Step, SpotlightState } from './types';
+import { Command, EntityInfo, UserInfo, Step } from './types';
 import { loadCommands, fuzzyMatch } from './commands';
 import { loadEntityMetadata } from './metadata';
+import { SpotlightState, initialState } from './state';
+import { showToast } from './utils';
+import { requestRoles, requestEntityMetadata } from './controller';
 
 // Icon mappings used when rendering the command list
 const commandIcons: Record<string, string> = {
@@ -117,7 +120,7 @@ async function openSpotlight(options?: { tip?: boolean }) {
   });
   document.body.append(backdrop);
   input.focus();
-  const stateObj: SpotlightState = { query: '', state: Step.Commands, pills: [], selectedEntity: '' };
+  const stateObj: SpotlightState = initialState();
   input.value = stateObj.query;
   input.select();
 
@@ -161,21 +164,6 @@ async function openSpotlight(options?: { tip?: boolean }) {
       selected.classList.add('dl-selected');
       selected.scrollIntoView({ block: 'nearest' });
     }
-  }
-
-  function showToast(message: string) {
-    const toast = document.createElement('div');
-    toast.textContent = message;
-    toast.style.cssText =
-      'position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#323232;color:#fff;padding:8px 16px;border-radius:4px;z-index:2147483647;opacity:0;transition:opacity 0.3s;';
-    document.body.append(toast);
-    requestAnimationFrame(() => {
-      toast.style.opacity = '1';
-    });
-    setTimeout(() => {
-      toast.style.opacity = '0';
-      toast.addEventListener('transitionend', () => toast.remove());
-    }, 2000);
   }
 
   function renderPills() {
@@ -553,44 +541,31 @@ async function openSpotlight(options?: { tip?: boolean }) {
       progressText.textContent = 'Loading roles...';
       progress.style.display = 'block';
       try {
-        const ids =
-          (window as any).Xrm?.Utility?.getGlobalContext?.()?.userSettings?.securityRoles ||
-          (window as any).Xrm?.Page?.context?.getUserRoles?.() ||
-          [];
-        if (ids.length) {
-          const filter = ids.map((id: string) => `roleid eq ${id}`).join(' or ');
-          const version = (window as any).Xrm?.Utility?.getGlobalContext?.()?.getVersion?.()?.substring(0, 3) || '9.1';
-          const resp = await fetch(
-            `${location.origin}/api/data/v${version}/roles?$select=name,roleid&$filter=${encodeURIComponent(filter)}`
-          );
-          const data = await resp.json();
-          const rows = (data.value || []).map(
-            (r: any) =>
-              `<div class="dl-info-row">${r.name}: <span class="dl-copy dl-code" data-val="${r.roleid}">${r.roleid}</span></div>`
-          );
-          if (rows.length) {
-            infoPanel.innerHTML = `<div class="dl-copy-hint">Click to Copy</div>${rows.join('')}`;
-          } else {
-            infoPanel.textContent = 'No security roles found';
-          }
-          input.style.display = 'none';
-          infoPanel.querySelectorAll<HTMLSpanElement>('.dl-copy').forEach((el) => {
-            el.addEventListener('click', () => {
-              const val = el.dataset.val || '';
-              navigator.clipboard.writeText(val).catch(() => {
-                const inp = document.createElement('input');
-                inp.value = val;
-                document.body.append(inp);
-                inp.select();
-                document.execCommand('copy');
-                inp.remove();
-              });
-              showToast('Copied to Clipboard');
-            });
-          });
+        const roles = await requestRoles();
+        const rows = roles.map(
+          (r) =>
+            `<div class="dl-info-row">${r.name}: <span class="dl-copy dl-code" data-val="${r.roleid}">${r.roleid}</span></div>`
+        );
+        if (rows.length) {
+          infoPanel.innerHTML = `<div class="dl-copy-hint">Click to Copy</div>${rows.join('')}`;
         } else {
           infoPanel.textContent = 'No security roles found';
         }
+        input.style.display = 'none';
+        infoPanel.querySelectorAll<HTMLSpanElement>('.dl-copy').forEach((el) => {
+          el.addEventListener('click', () => {
+            const val = el.dataset.val || '';
+            navigator.clipboard.writeText(val).catch(() => {
+              const inp = document.createElement('input');
+              inp.value = val;
+              document.body.append(inp);
+              inp.select();
+              document.execCommand('copy');
+              inp.remove();
+            });
+            showToast('Copied to Clipboard');
+          });
+        });
       } finally {
         progress.style.display = 'none';
       }
@@ -615,8 +590,7 @@ async function openSpotlight(options?: { tip?: boolean }) {
       progressText.textContent = 'Loading metadata...';
       progress.style.display = 'block';
       try {
-        const resp = await fetch(`${location.origin}/api/data/v9.1/EntityDefinitions(LogicalName='${entity}')`);
-        const data = await resp.json();
+        const data = await requestEntityMetadata(entity);
         const rows = Object.keys(data)
           .filter((k) => !k.startsWith('@'))
           .map((k) => {

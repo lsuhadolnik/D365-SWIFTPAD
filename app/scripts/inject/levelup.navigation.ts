@@ -221,9 +221,8 @@ export class Navigation {
 
   private showToast(message: string) {
     const toast = document.createElement('div');
+    toast.className = 'dl-toast';
     toast.textContent = message;
-    toast.style.cssText =
-      'position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#323232;color:#fff;padding:8px 16px;border-radius:4px;z-index:2147483647;opacity:0;transition:opacity 0.3s;';
     document.body.append(toast);
     requestAnimationFrame(() => {
       toast.style.opacity = '1';

@@ -78,6 +78,19 @@ window.addEventListener('message', async function (event) {
           const impersonateMessage = <IImpersonateMessage>message.content;
           new Service(utility).impersonateUser(impersonateMessage);
           break;
+        case 'myRolesRequest':
+          {
+            const roles = await new Service(utility).getMyRolesData();
+            window.postMessage({ type: 'myRolesResponse', content: roles }, '*');
+          }
+          break;
+        case 'entityMetadataRequest':
+          {
+            const entity = message.content as string;
+            const meta = await new Service(utility).getEntityMetadataData(entity);
+            window.postMessage({ type: 'entityMetadataResponse', content: meta }, '*');
+          }
+          break;
         case 'myRoles':
         case 'allUserRoles':
         case 'entityMetadata':

@@ -177,3 +177,17 @@
     transform: rotate(360deg);
   }
 }
+
+.dl-toast {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #323232;
+  color: #fff;
+  padding: 8px 16px;
+  border-radius: 4px;
+  z-index: 2147483647;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
