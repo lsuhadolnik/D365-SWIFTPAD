@@ -42,7 +42,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }}
         with:
-          name: ${{ github.ref_name }}
-          artifacts: "packages/${{ env.PACKAGE_NAME }}-${{ github.ref_name }}-chrome.zip"
+          name: ${{ env.SAFE_VERSION }}
+          artifacts: "packages/${{ env.PACKAGE_NAME }}-${{ env.SAFE_VERSION }}-chrome.zip"
           tag: ${{ github.ref_name }}
           replacesArtifacts: true
