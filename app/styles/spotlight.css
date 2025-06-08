@@ -174,3 +174,7 @@
     transform: rotate(360deg);
   }
 }
+
+#dl-auto-reload-toast button {
+  font-size: 12px;
+}

@@ -189,6 +189,75 @@ export class Navigation {
     window.location.reload();
   }
 
+  private autoReloadTimer: number | null = null;
+
+  autoReload() {
+    const existing = document.getElementById('dl-auto-reload-toast');
+    if (existing) {
+      if (this.autoReloadTimer) clearInterval(this.autoReloadTimer);
+      existing.remove();
+      this.autoReloadTimer = null;
+      return;
+    }
+
+    const toast = document.createElement('div');
+    toast.id = 'dl-auto-reload-toast';
+    toast.style.cssText =
+      'position:fixed;bottom:20px;left:20px;background:#323232;color:#fff;padding:8px 16px;border-radius:4px;z-index:2147483647;display:flex;align-items:center;gap:8px;font-size:12px;';
+    const spinner = document.createElement('div');
+    spinner.className = 'dl-spinner';
+    const tick = document.createElement('span');
+    tick.textContent = '✓';
+    tick.style.display = 'none';
+    const btnWrap = document.createElement('div');
+    btnWrap.style.display = 'flex';
+    btnWrap.style.gap = '4px';
+    [
+      { label: '1s', ms: 1000 },
+      { label: '5s', ms: 5000 },
+      { label: '10s', ms: 10000 },
+    ].forEach((b) => {
+      const btn = document.createElement('button');
+      btn.textContent = b.label;
+      btn.style.cssText = 'background:#555;border:none;color:#fff;padding:2px 4px;border-radius:2px;cursor:pointer;';
+      btn.addEventListener('click', () => setFreq(b.ms));
+      btnWrap.append(btn);
+    });
+    toast.append(spinner, tick, btnWrap);
+    document.body.append(toast);
+
+    const showTick = () => {
+      spinner.style.display = 'none';
+      tick.style.display = 'inline';
+      setTimeout(() => {
+        tick.style.display = 'none';
+        spinner.style.display = 'block';
+      }, 500);
+    };
+
+    const reload = () => {
+      //@ts-ignore
+      if (Xrm.Page?.data?.refresh) {
+        //@ts-ignore
+        const result = Xrm.Page.data.refresh(false);
+        if (result && result.then) {
+          result.then(showTick);
+        } else {
+          showTick();
+        }
+        return;
+      }
+      window.location.reload();
+    };
+
+    const setFreq = (ms: number) => {
+      if (this.autoReloadTimer) clearInterval(this.autoReloadTimer);
+      this.autoReloadTimer = window.setInterval(reload, ms);
+    };
+
+    setFreq(5000);
+  }
+
   solutionHistory() {
     if (
       //@ts-ignore
