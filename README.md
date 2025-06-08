@@ -2,32 +2,35 @@
 
 ## Summary
 
-D365-Swiftpad is a productivity extension for Dynamics 365 and Power Apps.
+D365-Swiftpad is a productivity extension for Dynamics 365 and Power Apps - Just hit `Ctrl+Shift+P` and have all your favourite Power User commands just a few keystrokes away.
+
 It is a continuation of the popular LevelUp tool by Natraj Yegnaraman with
 additional commands and a Spotlight style launcher.
 Original authorship belongs to Natraj Yegnaraman with updates by Lovro
 Suhadolnik.
 
 Documentation for developers is available in [docs/development.md](docs/development.md).
+Docs for users hopefully coming soon :)
 
 ![Swiftpad Screenshot](/screenshots/Screenshot%20Main.png)
 
 ## Notice: Does not work with On-Prem Dynamics CRM.
 And there's no plan at the moment to support this.
 
-## Usage
+## Installation
 
-Download the latest build from this repository's [releases](https://github.com/lsuhadolnik/Dynamics-Launchpad/releases) page and unzip it. Then load the folder in `chrome://extensions` using "Load unpacked".
+Download the latest build from this repository's [releases](https://github.com/lsuhadolnik/D365-SWIFTPAD/releases) page and unzip it.
+Then:
 
-Alternatively build from source:
-- Clone this repo
-- `npm i`
-- `npm run build`
 - Go to chrome://extensions
 - Enable developer mode
 - Click Load Unpacked
 - Point to this folder
 
+Then open Dynamics CRM and press `Ctrl+Shift+P`.
+
+
+Or build it from source...
 
 ## Build instructions
 
@@ -37,12 +40,6 @@ Node.js 20 or newer is required. Install dependencies and build using
 ```bash
 $ npm install
 $ npm run build
-```
-
-During development you can run a watcher that rebuilds on changes:
-
-```bash
-$ npm run dev
 ```
 
 Lint and format the TypeScript sources with:
