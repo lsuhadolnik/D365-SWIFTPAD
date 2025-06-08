@@ -17,7 +17,9 @@ And there's no plan at the moment to support this.
 
 ## Usage
 
-For now:
+Download the latest build from this repository's [releases](https://github.com/your-username/Dynamics-Launchpad/releases) page and unzip it. Then load the folder in `chrome://extensions` using "Load unpacked".
+
+Alternatively build from source:
 - Clone this repo
 - `npm i`
 - `npm run build`
