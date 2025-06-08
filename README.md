@@ -12,7 +12,10 @@ Suhadolnik.
 Documentation for developers is available in [docs/development.md](docs/development.md).
 Docs for users hopefully coming soon :)
 
-![Swiftpad Screenshot](/screenshots/Screenshot%20Main.png)
+# Demo - Click to open Youtube :)
+[![Youtube video about this](/screenshots/play.png)](https://youtu.be/tbWOcU_YtyM)
+
+
 
 ## Notice: Does not work with On-Prem Dynamics CRM.
 And there's no plan at the moment to support this.
