@@ -178,3 +178,20 @@
 #dl-auto-reload-toast button {
   font-size: 12px;
 }
+
+#dl-auto-reload-toast .dl-spinner,
+#dl-auto-reload-toast .dl-tick {
+  width: 24px;
+  height: 24px;
+}
+
+#dl-auto-reload-toast .dl-tick {
+  display: none;
+  font-size: 20px;
+  align-items: center;
+  justify-content: center;
+}
+
+#dl-auto-reload-toast button.selected {
+  background: #777;
+}
