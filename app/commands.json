@@ -35,7 +35,6 @@
     "title": "Run FetchXML"
   },
 
-
   {
     "id": "environmentDetails",
     "category": "",
@@ -66,7 +65,7 @@
     "category": "",
     "title": "Entity Metadata"
   },
-  
+
   {
     "id": "clearLogicalNames",
     "category": "Forms",
@@ -82,8 +81,7 @@
     "category": "Forms",
     "title": "Reset Blur"
   },
-  
-  
+
   {
     "id": "highlightDirtyFields",
     "category": "Forms",
@@ -114,7 +112,7 @@
     "category": "Forms",
     "title": "Minimum values"
   },
-  
+
   {
     "id": "cloneRecord",
     "category": "Forms",
@@ -215,8 +213,7 @@
     "category": "sendToFXB",
     "title": "Open View in FetchXML Builder"
   },
-  
-  
+
   {
     "id": "impersonationResetSpotlight",
     "category": "Impersonation",
@@ -241,5 +238,10 @@
     "id": "reloadData",
     "category": "Navigation",
     "title": "Reload Data"
+  },
+  {
+    "id": "autoReload",
+    "category": "Navigation",
+    "title": "Auto Reload"
   }
 ]

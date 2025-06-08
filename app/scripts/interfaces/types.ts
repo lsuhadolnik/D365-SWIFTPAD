@@ -36,6 +36,7 @@ export type MessageType =
   | 'openAdmin'
   | 'openMakePowerApps'
   | 'reloadData'
+  | 'autoReload'
   | 'openGrid'
   | 'quickFindFields'
   | 'environmentDetails'
