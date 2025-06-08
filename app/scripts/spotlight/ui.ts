@@ -421,6 +421,16 @@ async function openSpotlight(options?: { tip?: boolean }) {
     } else if (ev.key === 'ArrowUp') {
       select((selected?.previousElementSibling as HTMLLIElement) || list.lastElementChild);
       ev.preventDefault();
+    } else if (ev.key === 'Backspace' && input.value === '' && state === Step.EnvironmentInfoDisplay) {
+      pills.pop();
+      state = Step.Commands;
+      filtered = commands;
+      input.placeholder = 'Search commands...';
+      input.style.display = '';
+      infoPanel.style.display = 'none';
+      list.style.display = '';
+      renderPills();
+      render();
     } else if (ev.key === 'Enter') {
       if (selected && state === Step.Commands) {
         const id = selected.dataset.id!;
@@ -549,7 +559,10 @@ async function openSpotlight(options?: { tip?: boolean }) {
           [];
         if (ids.length) {
           const filter = ids.map((id: string) => `roleid eq ${id}`).join(' or ');
-          const resp = await fetch(`${location.origin}/api/data/v9.1/roles?$select=name,roleid&$filter=${filter}`);
+          const version = (window as any).Xrm?.Utility?.getGlobalContext?.()?.getVersion?.()?.substring(0, 3) || '9.1';
+          const resp = await fetch(
+            `${location.origin}/api/data/v${version}/roles?$select=name,roleid&$filter=${encodeURIComponent(filter)}`
+          );
           const data = await resp.json();
           const rows = (data.value || []).map(
             (r: any) =>

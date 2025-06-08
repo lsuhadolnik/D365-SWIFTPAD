@@ -3,9 +3,13 @@ import { crx } from '@crxjs/vite-plugin';
 import manifest from './manifest.json';
 import { resolve } from 'path';
 
+const keepDebug = process.env.KEEP_DEBUG === 'true';
+
 export default defineConfig({
   build: {
+    minify: keepDebug ? false : 'esbuild',
     outDir: 'dist',
+    esbuild: keepDebug ? {} : { drop: ['debugger'] },
     rollupOptions: {
       input: {
         options: resolve(__dirname, 'app/pages/options.html'),
