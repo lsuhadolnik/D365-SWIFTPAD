@@ -11,3 +11,14 @@ To add a new command:
 3. Rebuild the extension with `npm run build`.
 
 The TypeScript sources are organised under `app/scripts`. Spotlight related code is in `app/scripts/spotlight`.
+
+## Debug builds
+
+Vite removes `debugger` statements when minifying. To keep them during a build,
+set the environment variable `KEEP_DEBUG=true`:
+
+```bash
+KEEP_DEBUG=true npm run build
+```
+
+The resulting code will retain `debugger` statements and include source maps.

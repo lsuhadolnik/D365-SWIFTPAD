@@ -41,13 +41,17 @@ export type MessageType =
   | 'quickFindFields'
   | 'environmentDetails'
   | 'myRoles'
+  | 'myRolesRequest'
+  | 'myRolesResponse'
   | 'allUserRoles'
   | 'processes'
   | 'loadUsers'
   | 'activation'
   | 'reset'
   | 'search'
-  | 'impersonation';
+  | 'impersonation'
+  | 'entityMetadataRequest'
+  | 'entityMetadataResponse';
 
 export type Category =
   | 'Impersonation'

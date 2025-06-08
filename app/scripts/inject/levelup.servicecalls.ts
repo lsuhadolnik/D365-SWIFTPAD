@@ -160,6 +160,26 @@ export class Service {
         this.utility.messageExtension(resultsArray, 'entityMetadata');
       });
   }
+
+  async getMyRolesData(): Promise<{ name: string; roleid: string }[]> {
+    const ids =
+      (Xrm as any)?.Utility?.getGlobalContext?.()?.userSettings?.securityRoles ||
+      (Xrm as any)?.Page?.context?.getUserRoles?.() ||
+      [];
+    if (!ids.length) return [];
+    const version = (Xrm as any)?.Utility?.getGlobalContext?.()?.getVersion?.()?.substring(0, 3) || '9.1';
+    const filter = ids.map((id: string) => `roleid eq ${id}`).join(' or ');
+    const resp = await fetch(
+      `${location.origin}/api/data/v${version}/roles?$select=name,roleid&$filter=${encodeURIComponent(filter)}`
+    );
+    const data = await resp.json();
+    return data.value || [];
+  }
+
+  async getEntityMetadataData(entity: string): Promise<Record<string, any>> {
+    const resp = await fetch(`${location.origin}/api/data/v9.1/EntityDefinitions(LogicalName='${entity}')`);
+    return resp.json();
+  }
   async impersonateUser(impersonateRequest: IImpersonateMessage) {
     if (typeof Xrm.Utility.getGlobalContext === 'function') {
       const privs: {

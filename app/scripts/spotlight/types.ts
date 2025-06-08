@@ -28,10 +28,3 @@ export enum Step {
   EntityInfoDisplay,
   EnvironmentInfoDisplay,
 }
-
-export interface SpotlightState {
-  query: string;
-  state: Step;
-  pills: string[];
-  selectedEntity: string;
-}
