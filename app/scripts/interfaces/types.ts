@@ -55,6 +55,7 @@ export type MessageType =
 
 export type Category =
   | 'Impersonation'
+  | 'Impersonation-UserSearch'
   | 'Settings'
   | 'Forms'
   | 'Navigation'

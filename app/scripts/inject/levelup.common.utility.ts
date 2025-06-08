@@ -133,6 +133,7 @@ export class Utility {
     });
     levelUpEvent.initEvent('levelup', false, false);
     document.dispatchEvent(levelUpEvent);
+    postMessage(extensionMessage, '*');
   }
 
   static injectScript(file): void {

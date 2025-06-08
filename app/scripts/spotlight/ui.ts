@@ -327,9 +327,16 @@ async function openSpotlight(options?: { tip?: boolean }) {
       li.addEventListener('click', () => {
         closeSpotlight();
         chrome.runtime.sendMessage({
-          type: 'impersonation',
+          type: 'Page',
           category: 'Impersonation',
-          content: { isActive: true, userName: u.userName, url: `${location.origin}/` },
+          content: {
+            impersonateRequest: {
+              isActive: true,
+              url: `${location.origin}/`,
+              canImpersonate: true,
+            },
+            users: [u],
+          },
         });
       });
       list.append(li);
@@ -422,34 +429,35 @@ async function openSpotlight(options?: { tip?: boolean }) {
       list.style.display = '';
       renderPills();
       render();
-    } else if (ev.key === 'Enter') {
-      if (selected && state === Step.Commands) {
+    } else if (ev.key === 'Enter' && selected) {
+      if (state === Step.Commands) {
         const id = selected.dataset.id!;
         const cmd = commands.find((c) => c.id === id)!;
         executeCommand(cmd);
-      } else if (selected && state === Step.OpenRecordEntity) {
-        (selected as HTMLElement).click();
-      } else if (selected && state === Step.EntityInfoDisplay) {
-        (selected as HTMLElement).click();
-      } else if (selected && state === Step.OpenRecordId) {
-        (selected as HTMLElement).click();
-      } else if (selected && state === Step.FetchXml) {
+      } else {
         (selected as HTMLElement).click();
       }
     }
   });
 
-  handleSpotlightMessage = function (message: any) {
-    if (message.type === 'search' && message.category === 'Impersonation' && state === Step.ImpersonateSearch) {
+  handleSpotlightMessage = function (rawMessage: any) {
+    const message = rawMessage.data || rawMessage;
+
+    // Users loaded, show on the list
+    if (
+      message.type === 'Page' &&
+      message.category === 'Impersonation-UserSearch' &&
+      state === Step.ImpersonateSearch
+    ) {
       users = message.content as UserInfo[];
-      filtered = users;
+      filtered = message.content.users;
       progress.style.display = 'none';
       progressText.textContent = '';
       render();
     }
   };
 
-  chrome.runtime.onMessage.addListener(handleSpotlightMessage);
+  window.addEventListener('message', handleSpotlightMessage);
 
   async function executeCommand(cmd: Command) {
     if (cmd.id === 'openRecordSpotlight') {

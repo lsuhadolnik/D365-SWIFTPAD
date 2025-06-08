@@ -239,7 +239,7 @@ export class Service {
     impersonateRequest.canImpersonate = true;
     this.utility.messageExtension(
       <IImpersonationResponse>{ users: resultsArray, impersonateRequest: impersonateRequest },
-      'Impersonation'
+      'Impersonation-UserSearch' // Prevent double-execute
     );
     return resultsArray;
   }
