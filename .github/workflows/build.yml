@@ -5,6 +5,10 @@ on:
     tags:
       - 'v*'
   workflow_dispatch:
+    inputs:
+        version:
+          description: 'Version (e.g. v1.2.3)'
+          required: true
 
 jobs:
   build:
@@ -17,6 +21,11 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: '20'
+      - name: Set safe version
+        run: |
+          VERSION=${{ github.event.inputs.version || github.ref_name }}
+          SAFE_VERSION="${VERSION//\//-}"
+          echo "SAFE_VERSION=$SAFE_VERSION" >> $GITHUB_ENV
       - run: npm ci
       - run: npm run lint
       - run: npm run build
@@ -26,7 +35,7 @@ jobs:
           ls
           mkdir -p packages
           cd dist
-          zip -r "../packages/${PACKAGE_NAME}-${{ github.ref_name }}-chrome.zip" .
+          zip -r "../packages/${PACKAGE_NAME}-${SAFE_VERSION}-chrome.zip" .
           cd ..
       - name: Create Release
         uses: ncipollo/release-action@v1.12.0
