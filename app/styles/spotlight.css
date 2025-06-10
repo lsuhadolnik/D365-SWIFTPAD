@@ -222,3 +222,32 @@
 #dl-auto-reload-toast button.selected {
   background: #777 !important;
 }
+
+/* Favorites UI */
+#dl-spotlight-favs {
+  margin-bottom: 6px;
+}
+
+.dl-fav {
+  display: inline-flex;
+  align-items: center;
+  background: #f3e8fc;
+  border-radius: 8px;
+  padding: 2px 6px;
+  margin-right: 4px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.dl-fav-icon {
+  margin-right: 4px;
+  color: #a631af;
+  font-size: 14px;
+}
+
+.dl-star {
+  margin-left: auto;
+  cursor: pointer;
+  color: #a631af;
+  font-size: 16px;
+}

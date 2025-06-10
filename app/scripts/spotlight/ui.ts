@@ -40,6 +40,16 @@ let spotlightCleanup: (() => void) | null = null;
 let fetchResults: { id: string; name: string }[] = [];
 let fetchEntity = '';
 let recordResults: { id: string; name: string }[] = [];
+let favorites: Set<string> = new Set();
+
+async function loadFavorites() {
+  const data = await chrome.storage.sync.get('favorites');
+  favorites = new Set<string>((data.favorites as string[]) || []);
+}
+
+function saveFavorites() {
+  chrome.storage.sync.set({ favorites: Array.from(favorites) });
+}
 
 /**
  * Initialize keyboard shortcut (Ctrl+Shift+P) to open spotlight
@@ -92,6 +102,8 @@ async function openSpotlight(options?: { tip?: boolean }) {
     css.href = chrome.runtime.getURL('app/styles/spotlight.css');
     document.head.append(css);
   }
+  const favWrap = document.createElement('div');
+  favWrap.id = 'dl-spotlight-favs';
   const pillWrap = document.createElement('div');
   pillWrap.id = 'dl-spotlight-pills';
   const input = document.createElement('input');
@@ -108,7 +120,7 @@ async function openSpotlight(options?: { tip?: boolean }) {
   progress.id = 'dl-spotlight-progress';
   progress.innerHTML = '<div class="dl-spinner"></div><div class="dl-progress-text"></div>';
   const progressText = progress.querySelector<HTMLDivElement>('.dl-progress-text')!;
-  container.append(logo, pillWrap, input, list, infoPanel, progress);
+  container.append(logo, favWrap, pillWrap, input, list, infoPanel, progress);
   if (options?.tip) {
     const tip = document.createElement('div');
     tip.textContent = 'Tip: Press Ctrl+Shift+P to open this window.';
@@ -126,6 +138,7 @@ async function openSpotlight(options?: { tip?: boolean }) {
   input.select();
 
   const commands = (await loadCommands()).filter((c) => c.id !== 'startImpersonationButton');
+  await loadFavorites();
   let metadata: EntityInfo[] = [];
   let filtered: (Command | EntityInfo)[] = commands;
   let state: Step = stateObj.state;
@@ -196,6 +209,26 @@ async function openSpotlight(options?: { tip?: boolean }) {
       }
       pillWrap.append(span);
     });
+    renderFavorites();
+  }
+
+  function renderFavorites() {
+    favWrap.innerHTML = '';
+    if (pills.length > 0 || state !== Step.Commands) return;
+    favorites.forEach((id) => {
+      const cmd = commands.find((c) => c.id === id);
+      if (!cmd) return;
+      const div = document.createElement('div');
+      div.className = 'dl-fav';
+      const ic = document.createElement('span');
+      ic.className = 'material-icons dl-fav-icon';
+      ic.textContent = cmd.icon || commandIcons[cmd.id] || categoryIcons[cmd.category] || 'chevron_right';
+      const txt = document.createElement('span');
+      txt.textContent = cmd.title;
+      div.append(ic, txt);
+      div.addEventListener('click', () => executeCommand(cmd));
+      favWrap.append(div);
+    });
   }
 
   function render() {
@@ -217,6 +250,7 @@ async function openSpotlight(options?: { tip?: boolean }) {
       infoPanel.style.display = 'block';
     }
     select(list.firstElementChild as HTMLLIElement | null);
+    renderFavorites();
   }
 
   function renderCommands() {
@@ -229,7 +263,21 @@ async function openSpotlight(options?: { tip?: boolean }) {
       icon.textContent = cmd.icon || commandIcons[cmd.id] || categoryIcons[cmd.category] || 'chevron_right';
       const text = document.createElement('span');
       text.textContent = cmd.title;
-      li.append(icon, text);
+      const star = document.createElement('span');
+      star.className = 'material-icons dl-star';
+      star.textContent = favorites.has(cmd.id) ? 'star' : 'star_border';
+      star.addEventListener('click', (ev) => {
+        ev.stopPropagation();
+        if (favorites.has(cmd.id)) {
+          favorites.delete(cmd.id);
+        } else {
+          favorites.add(cmd.id);
+        }
+        saveFavorites();
+        renderFavorites();
+        star.textContent = favorites.has(cmd.id) ? 'star' : 'star_border';
+      });
+      li.append(icon, text, star);
       li.dataset.id = cmd.id;
       li.dataset.category = cmd.category;
       li.className = 'dl-listitem';
