@@ -419,7 +419,7 @@ async function openSpotlight(options?: { tip?: boolean }) {
     } else if (ev.key === 'ArrowUp') {
       select((selected?.previousElementSibling as HTMLLIElement) || list.lastElementChild);
       ev.preventDefault();
-    } else if (ev.key === 'Backspace' && input.value === '' && state === Step.EnvironmentInfoDisplay) {
+    } else if (ev.key === 'Backspace' && input.value === '' && pills.length > 0) {
       pills.pop();
       state = Step.Commands;
       filtered = commands;
@@ -427,6 +427,16 @@ async function openSpotlight(options?: { tip?: boolean }) {
       input.style.display = '';
       infoPanel.style.display = 'none';
       list.style.display = '';
+      if (state === Step.OpenRecordId) {
+        state = Step.OpenRecordEntity;
+        input.placeholder = 'Search entity...';
+        filtered = metadata;
+      } else {
+        state = Step.Commands;
+        filtered = commands;
+        input.placeholder = 'Search commands...';
+        input.style.display = '';
+      }
       renderPills();
       render();
     } else if (ev.key === 'Enter' && selected) {
