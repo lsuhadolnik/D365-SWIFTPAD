@@ -33,6 +33,13 @@ class App {
   private hookupEventListeners() {
     document.addEventListener('levelup', (data: ICustomMessage) => {
       if (data.detail && data.detail.type === 'Page') {
+        // Avoid forwarding impersonation responses back to the page to
+        // prevent infinite loops. Spotlight listens directly for these
+        // window messages.
+        if (data.detail.category === 'Impersonation' || data.detail.category === 'Impersonation-UserSearch') {
+          console.log('[app.ts] swallow impersonation message', data.detail);
+          return;
+        }
         console.log('Levelup message dispatched to background', data.detail);
         chrome.runtime.sendMessage(data.detail);
       }

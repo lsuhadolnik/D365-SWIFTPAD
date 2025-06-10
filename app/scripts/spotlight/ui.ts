@@ -3,10 +3,11 @@
  * of results and command execution.
  */
 import { Command, EntityInfo, UserInfo, Step } from './types';
+import { IImpersonationResponse } from '../interfaces/types';
 import { loadCommands, fuzzyMatch } from './commands';
 import { loadEntityMetadata } from './metadata';
 import { SpotlightState, initialState } from './state';
-import { showToast } from './utils';
+import { showToast, debounce } from './utils';
 import { requestRoles, requestEntityMetadata } from './controller';
 
 // Icon mappings used when rendering the command list
@@ -131,6 +132,16 @@ async function openSpotlight(options?: { tip?: boolean }) {
   progress.id = 'dl-spotlight-progress';
   progress.innerHTML = '<div class="dl-spinner"></div><div class="dl-progress-text"></div>';
   const progressText = progress.querySelector<HTMLDivElement>('.dl-progress-text')!;
+  const sendSearch = debounce((q: string) => {
+    progressText.textContent = 'Loading...';
+    progress.style.display = 'block';
+    console.log('[ui.ts] sending search', q);
+    chrome.runtime.sendMessage({
+      type: 'search',
+      category: 'Impersonation',
+      content: { userName: q },
+    });
+  }, 100);
   container.append(logo, pillWrap, input, list, infoPanel, progress);
   backdrop.append(favWrap, container);
   if (options?.tip) {
@@ -156,6 +167,7 @@ async function openSpotlight(options?: { tip?: boolean }) {
   let selectedEntity = stateObj.selectedEntity;
   let users: UserInfo[] = [];
   const pills: string[] = [...stateObj.pills];
+  let checkingImpersonation = false;
 
   if (state === Step.FetchXml) {
     state = Step.Commands;
@@ -522,8 +534,8 @@ async function openSpotlight(options?: { tip?: boolean }) {
         filtered = recordResults;
       }
     } else if (state === Step.ImpersonateSearch) {
-      const ql = q.toLowerCase();
-      filtered = users.filter((u) => u.fullName.toLowerCase().includes(ql) || u.userName.toLowerCase().includes(ql));
+      sendSearch(q);
+      filtered = [];
     } else if (state === Step.FetchXml) {
       const ql = q.toLowerCase();
       filtered = fetchResults.filter((r) => r.name.toLowerCase().includes(ql) || r.id.toLowerCase().includes(ql));
@@ -573,18 +585,45 @@ async function openSpotlight(options?: { tip?: boolean }) {
 
   handleSpotlightMessage = function (rawMessage: any) {
     const message = rawMessage.data || rawMessage;
+    console.log('[ui.ts] received', message);
 
-    // Users loaded, show on the list
     if (
       message.type === 'Page' &&
       message.category === 'Impersonation-UserSearch' &&
-      state === Step.ImpersonateSearch
+      (state === Step.ImpersonateSearch || checkingImpersonation)
     ) {
-      users = message.content as UserInfo[];
-      filtered = message.content.users;
+      const resp = message.content as IImpersonationResponse;
       progress.style.display = 'none';
       progressText.textContent = '';
+      if (checkingImpersonation) {
+        checkingImpersonation = false;
+        state = Step.ImpersonateSearch;
+        pills.push('Impersonate');
+        input.placeholder = 'Search user...';
+        input.value = '';
+        users = resp.users;
+        filtered = resp.users;
+        renderPills();
+      } else {
+        users = resp.users;
+        filtered = resp.users;
+      }
       render();
+    } else if (message.type === 'Page' && message.category === 'Impersonation' && checkingImpersonation) {
+      const resp = message.content as IImpersonationResponse;
+      checkingImpersonation = false;
+      progress.style.display = 'none';
+      progressText.textContent = '';
+      if (!resp.impersonateRequest.canImpersonate) {
+        showToast('You do not have impersonation permissions');
+      }
+    } else if (message.type === 'Page' && message.category === 'Impersonation' && state === Step.ImpersonateSearch) {
+      const resp = message.content as IImpersonationResponse;
+      if (!resp.impersonateRequest.canImpersonate) {
+        progress.style.display = 'none';
+        progressText.textContent = '';
+        showToast('You do not have impersonation permissions');
+      }
     }
   };
 
@@ -809,21 +848,15 @@ async function openSpotlight(options?: { tip?: boolean }) {
       render();
       return;
     } else if (cmd.id === 'impersonateUserSpotlight') {
-      state = Step.ImpersonateSearch;
-      pills.push('Impersonate');
-      input.placeholder = 'Search user...';
-      input.value = '';
-      users = [];
-      filtered = [];
-      progressText.textContent = 'Loading users...';
+      checkingImpersonation = true;
+      progressText.textContent = 'Checking permissions...';
       progress.style.display = 'block';
+      console.log('[ui.ts] requesting initial users');
       chrome.runtime.sendMessage({
         type: 'search',
         category: 'Impersonation',
         content: { userName: '' },
       });
-      renderPills();
-      render();
       return;
     } else if (cmd.id === 'impersonationResetSpotlight') {
       closeSpotlight();
@@ -846,7 +879,7 @@ async function openSpotlight(options?: { tip?: boolean }) {
 
   spotlightCleanup = () => {
     if (handleSpotlightMessage) {
-      chrome.runtime.onMessage.removeListener(handleSpotlightMessage);
+      window.removeEventListener('message', handleSpotlightMessage as EventListener);
       handleSpotlightMessage = null;
     }
   };

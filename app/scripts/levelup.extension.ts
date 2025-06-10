@@ -13,6 +13,9 @@ window.addEventListener('message', async function (event) {
 
   console.log('Levelup received window message', event.data);
 
+  // Ignore messages that are results from this page to avoid infinite loops
+  if (event.data?.type === 'Page') return;
+
   // home.dynamics.com also messaging. Ignore.
   if (location.origin !== event.origin && location.origin !== `${event.origin}.mcas.ms`) return;
   const source = <Window>event.source;
