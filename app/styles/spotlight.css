@@ -249,6 +249,7 @@
   padding: 8px;
   border-radius: 10px;
   user-select: none;
+  position: relative;
 }
 
 .dl-fav:active {
@@ -301,4 +302,41 @@
 
 .dl-star:hover {
   background: rgba(166, 49, 175, 0.1);
+}
+
+/* Favorite color customization */
+.dl-brush {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  font-size: 16px;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.2s;
+  color: #555;
+}
+
+.dl-fav:hover .dl-brush {
+  opacity: 1;
+}
+
+.dl-palette {
+  position: absolute;
+  top: -40px;
+  right: 0;
+  background: rgba(255, 255, 255, 0.95);
+  padding: 4px;
+  border-radius: 8px;
+  display: flex;
+  gap: 4px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  z-index: 10;
+}
+
+.dl-swatch {
+  width: 14px;
+  height: 14px;
+  border-radius: 4px;
+  cursor: pointer;
+  border: 1px solid #ccc;
 }
