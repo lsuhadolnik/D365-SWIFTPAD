@@ -237,7 +237,6 @@
   display: none;
   gap: 0;
   justify-content: flex-start;
-  cursor: move;
   user-select: none;
 }
 
@@ -245,11 +244,15 @@
   width: 50px;
   font-size: 11px;
   text-align: center;
-  cursor: pointer;
+  cursor: grab;
   line-height: 1.2;
   padding: 8px;
   border-radius: 10px;
   user-select: none;
+}
+
+.dl-fav:active {
+  cursor: grabbing;
 }
 
 .dl-fav:hover {
