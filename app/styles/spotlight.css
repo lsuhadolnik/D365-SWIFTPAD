@@ -178,7 +178,6 @@
   }
 }
 
-
 .dl-toast {
   position: fixed;
   bottom: 20px;
@@ -191,6 +190,7 @@
   z-index: 2147483647;
   opacity: 0;
   transition: opacity 0.3s;
+}
 
 #dl-auto-reload-toast button {
   font-size: 12px;
@@ -226,23 +226,44 @@
 /* Favorites UI */
 #dl-spotlight-favs {
   margin-bottom: 6px;
+  padding: 6px;
+  background: #f9f0ff;
+  border-radius: 10px;
+  display: flex;
+  gap: 8px;
+  justify-content: flex-start;
 }
 
 .dl-fav {
-  display: inline-flex;
+  width: 50px;
+  font-size: 11px;
+  text-align: center;
+  cursor: pointer;
+  line-height: 1.2;
+}
+
+.dl-fav-icon-wrap {
+  width: 50px;
+  height: 50px;
+  display: flex;
   align-items: center;
+  justify-content: center;
   background: #f3e8fc;
   border-radius: 8px;
-  padding: 2px 6px;
-  margin-right: 4px;
-  font-size: 12px;
-  cursor: pointer;
+  margin-bottom: 4px;
 }
 
 .dl-fav-icon {
-  margin-right: 4px;
   color: #a631af;
-  font-size: 14px;
+  font-size: 24px;
+}
+
+.dl-fav-title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
 }
 
 .dl-star {
@@ -250,4 +271,10 @@
   cursor: pointer;
   color: #a631af;
   font-size: 16px;
+  border-radius: 4px;
+  padding: 2px;
+}
+
+.dl-star:hover {
+  background: rgba(166, 49, 175, 0.1);
 }

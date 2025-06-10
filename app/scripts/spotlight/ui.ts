@@ -214,21 +214,32 @@ async function openSpotlight(options?: { tip?: boolean }) {
 
   function renderFavorites() {
     favWrap.innerHTML = '';
-    if (pills.length > 0 || state !== Step.Commands) return;
-    favorites.forEach((id) => {
-      const cmd = commands.find((c) => c.id === id);
-      if (!cmd) return;
-      const div = document.createElement('div');
-      div.className = 'dl-fav';
-      const ic = document.createElement('span');
-      ic.className = 'material-icons dl-fav-icon';
-      ic.textContent = cmd.icon || commandIcons[cmd.id] || categoryIcons[cmd.category] || 'chevron_right';
-      const txt = document.createElement('span');
-      txt.textContent = cmd.title;
-      div.append(ic, txt);
-      div.addEventListener('click', () => executeCommand(cmd));
-      favWrap.append(div);
-    });
+    if (pills.length > 0 || state !== Step.Commands || favorites.size === 0) {
+      return;
+    }
+    Array.from(favorites)
+      .slice(0, 5)
+      .forEach((id) => {
+        const cmd = commands.find((c) => c.id === id);
+        if (!cmd) return;
+        const div = document.createElement('div');
+        div.className = 'dl-fav';
+
+        const iconWrap = document.createElement('div');
+        iconWrap.className = 'dl-fav-icon-wrap';
+        const ic = document.createElement('span');
+        ic.className = 'material-icons dl-fav-icon';
+        ic.textContent = cmd.icon || commandIcons[cmd.id] || categoryIcons[cmd.category] || 'chevron_right';
+        iconWrap.append(ic);
+
+        const txt = document.createElement('div');
+        txt.className = 'dl-fav-title';
+        txt.textContent = cmd.title;
+
+        div.append(iconWrap, txt);
+        div.addEventListener('click', () => executeCommand(cmd));
+        favWrap.append(div);
+      });
   }
 
   function render() {
