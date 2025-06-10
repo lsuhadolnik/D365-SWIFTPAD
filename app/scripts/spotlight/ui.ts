@@ -133,6 +133,7 @@ async function openSpotlight(options?: { tip?: boolean }) {
   let selectedEntity = stateObj.selectedEntity;
   let users: UserInfo[] = [];
   const pills: string[] = [...stateObj.pills];
+  let checkingImpersonation = false;
 
   if (state === Step.FetchXml) {
     state = Step.Commands;
@@ -452,18 +453,36 @@ async function openSpotlight(options?: { tip?: boolean }) {
     const message = rawMessage.data || rawMessage;
     console.log('[ui.ts] received', message);
 
-    // Users loaded, show on the list
     if (
       message.type === 'Page' &&
       message.category === 'Impersonation-UserSearch' &&
-      state === Step.ImpersonateSearch
+      (state === Step.ImpersonateSearch || checkingImpersonation)
     ) {
       const resp = message.content as IImpersonationResponse;
-      users = resp.users;
-      filtered = resp.users;
       progress.style.display = 'none';
       progressText.textContent = '';
+      if (checkingImpersonation) {
+        checkingImpersonation = false;
+        state = Step.ImpersonateSearch;
+        pills.push('Impersonate');
+        input.placeholder = 'Search user...';
+        input.value = '';
+        users = resp.users;
+        filtered = resp.users;
+        renderPills();
+      } else {
+        users = resp.users;
+        filtered = resp.users;
+      }
       render();
+    } else if (message.type === 'Page' && message.category === 'Impersonation' && checkingImpersonation) {
+      const resp = message.content as IImpersonationResponse;
+      checkingImpersonation = false;
+      progress.style.display = 'none';
+      progressText.textContent = '';
+      if (!resp.impersonateRequest.canImpersonate) {
+        showToast('You do not have impersonation permissions');
+      }
     } else if (message.type === 'Page' && message.category === 'Impersonation' && state === Step.ImpersonateSearch) {
       const resp = message.content as IImpersonationResponse;
       if (!resp.impersonateRequest.canImpersonate) {
@@ -695,13 +714,8 @@ async function openSpotlight(options?: { tip?: boolean }) {
       render();
       return;
     } else if (cmd.id === 'impersonateUserSpotlight') {
-      state = Step.ImpersonateSearch;
-      pills.push('Impersonate');
-      input.placeholder = 'Search user...';
-      input.value = '';
-      users = [];
-      filtered = [];
-      progressText.textContent = 'Loading users...';
+      checkingImpersonation = true;
+      progressText.textContent = 'Checking permissions...';
       progress.style.display = 'block';
       console.log('[ui.ts] requesting initial users');
       chrome.runtime.sendMessage({
@@ -709,8 +723,6 @@ async function openSpotlight(options?: { tip?: boolean }) {
         category: 'Impersonation',
         content: { userName: '' },
       });
-      renderPills();
-      render();
       return;
     } else if (cmd.id === 'impersonationResetSpotlight') {
       closeSpotlight();
