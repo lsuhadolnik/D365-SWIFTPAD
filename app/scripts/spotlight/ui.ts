@@ -68,6 +68,16 @@ function openEntityList(entity: string) {
   window.open(`${base}etn=${entity}&pagetype=entitylist`);
 }
 
+function currentEntityFromUrl(): string | null {
+  const url = new URL(location.href);
+  let ent = url.searchParams.get('etn');
+  if (!ent && url.hash.includes('etn=')) {
+    const m = url.hash.match(/etn=([^&]+)/);
+    if (m) ent = m[1];
+  }
+  return ent;
+}
+
 async function openSpotlight(options?: { tip?: boolean }) {
   const backdrop = document.createElement('div');
   backdrop.id = 'dl-spotlight-backdrop';
@@ -241,30 +251,62 @@ async function openSpotlight(options?: { tip?: boolean }) {
 
   function renderEntities() {
     debugger;
-    (filtered as EntityInfo[]).slice(0, 20).forEach((ent) => {
-      const li = document.createElement('li');
-      li.innerHTML = `${ent.displayName} <code class="dl-code">${ent.logicalName}</code>`;
-      li.className = 'dl-listitem';
-      li.addEventListener('mouseenter', () => select(li));
-      li.addEventListener('click', () => {
-        selectedEntity = ent.logicalName;
-        pills.push(ent.displayName);
-        state = Step.OpenRecordId;
-        input.value = '';
-        input.placeholder = 'Enter GUID or start typing the name of the entity';
-        recordResults = [];
-        filtered = recordResults;
-        list.innerHTML = '';
-        renderPills();
-        render();
+    const queryEmpty = input.value.trim() === '';
+    const currentEntity = queryEmpty ? currentEntityFromUrl() : null;
+    if (currentEntity) {
+      const ent = (filtered as EntityInfo[]).find((e) => e.logicalName === currentEntity);
+      if (ent) {
+        const li = document.createElement('li');
+        li.innerHTML = `${ent.displayName} <code class="dl-code">${ent.logicalName}</code>`;
+        li.className = 'dl-listitem';
+        li.addEventListener('mouseenter', () => select(li));
+        li.addEventListener('click', () => {
+          selectedEntity = ent.logicalName;
+          pills.push(ent.displayName);
+          state = Step.OpenRecordId;
+          input.value = '';
+          input.placeholder = 'Enter GUID or start typing the name of the entity';
+          recordResults = [];
+          filtered = recordResults;
+          list.innerHTML = '';
+          renderPills();
+          render();
+        });
+        li.addEventListener('dblclick', () => {
+          closeSpotlight();
+          openEntityList(ent.logicalName);
+        });
+        list.append(li);
+      }
+    }
+
+    (filtered as EntityInfo[])
+      .filter((e) => !currentEntity || e.logicalName !== currentEntity)
+      .slice(0, 20)
+      .forEach((ent) => {
+        const li = document.createElement('li');
+        li.innerHTML = `${ent.displayName} <code class="dl-code">${ent.logicalName}</code>`;
+        li.className = 'dl-listitem';
+        li.addEventListener('mouseenter', () => select(li));
+        li.addEventListener('click', () => {
+          selectedEntity = ent.logicalName;
+          pills.push(ent.displayName);
+          state = Step.OpenRecordId;
+          input.value = '';
+          input.placeholder = 'Enter GUID or start typing the name of the entity';
+          recordResults = [];
+          filtered = recordResults;
+          list.innerHTML = '';
+          renderPills();
+          render();
+        });
+        // Double click directly opens the list view
+        li.addEventListener('dblclick', () => {
+          closeSpotlight();
+          openEntityList(ent.logicalName);
+        });
+        list.append(li);
       });
-      // Double click directly opens the list view
-      li.addEventListener('dblclick', () => {
-        closeSpotlight();
-        openEntityList(ent.logicalName);
-      });
-      list.append(li);
-    });
     if (state === Step.OpenRecordEntity) {
       const typed = input.value.trim();
       if (typed && !metadata.some((m) => m.logicalName.toLowerCase() === typed.toLowerCase())) {
@@ -291,16 +333,6 @@ async function openSpotlight(options?: { tip?: boolean }) {
 
   function renderRecords() {
     debugger;
-    const openListLi = document.createElement('li');
-    openListLi.textContent = `Open ${selectedEntity} list`;
-    openListLi.className = 'dl-listitem';
-    openListLi.addEventListener('mouseenter', () => select(openListLi));
-    openListLi.addEventListener('click', () => {
-      closeSpotlight();
-      openEntityList(selectedEntity);
-    });
-    list.append(openListLi);
-
     (filtered as { id: string; name: string }[]).slice(0, 20).forEach((r) => {
       const li = document.createElement('li');
       li.textContent = `${r.name} (${r.id})`;
@@ -316,6 +348,16 @@ async function openSpotlight(options?: { tip?: boolean }) {
       });
       list.append(li);
     });
+
+    const openListLi = document.createElement('li');
+    openListLi.textContent = `Open ${selectedEntity} list`;
+    openListLi.className = 'dl-listitem';
+    openListLi.addEventListener('mouseenter', () => select(openListLi));
+    openListLi.addEventListener('click', () => {
+      closeSpotlight();
+      openEntityList(selectedEntity);
+    });
+    list.append(openListLi);
   }
 
   function renderUsers() {
