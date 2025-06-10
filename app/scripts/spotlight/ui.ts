@@ -7,7 +7,7 @@ import { IImpersonationResponse } from '../interfaces/types';
 import { loadCommands, fuzzyMatch } from './commands';
 import { loadEntityMetadata } from './metadata';
 import { SpotlightState, initialState } from './state';
-import { showToast } from './utils';
+import { showToast, debounce } from './utils';
 import { requestRoles, requestEntityMetadata } from './controller';
 
 // Icon mappings used when rendering the command list
@@ -109,6 +109,16 @@ async function openSpotlight(options?: { tip?: boolean }) {
   progress.id = 'dl-spotlight-progress';
   progress.innerHTML = '<div class="dl-spinner"></div><div class="dl-progress-text"></div>';
   const progressText = progress.querySelector<HTMLDivElement>('.dl-progress-text')!;
+  const sendSearch = debounce((q: string) => {
+    progressText.textContent = 'Loading...';
+    progress.style.display = 'block';
+    console.log('[ui.ts] sending search', q);
+    chrome.runtime.sendMessage({
+      type: 'search',
+      category: 'Impersonation',
+      content: { userName: q },
+    });
+  }, 300);
   container.append(logo, pillWrap, input, list, infoPanel, progress);
   if (options?.tip) {
     const tip = document.createElement('div');
@@ -403,14 +413,7 @@ async function openSpotlight(options?: { tip?: boolean }) {
         filtered = recordResults;
       }
     } else if (state === Step.ImpersonateSearch) {
-      progressText.textContent = 'Loading...';
-      progress.style.display = 'block';
-      console.log('[ui.ts] sending search', q);
-      chrome.runtime.sendMessage({
-        type: 'search',
-        category: 'Impersonation',
-        content: { userName: q },
-      });
+      sendSearch(q);
       filtered = [];
     } else if (state === Step.FetchXml) {
       const ql = q.toLowerCase();

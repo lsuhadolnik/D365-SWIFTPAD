@@ -22,3 +22,11 @@ export function el<K extends keyof HTMLElementTagNameMap>(
   if (text) node.textContent = text;
   return node;
 }
+
+export function debounce<T extends (...args: any[]) => void>(fn: T, wait: number) {
+  let handle: number | undefined;
+  return function (this: unknown, ...args: Parameters<T>) {
+    if (handle) clearTimeout(handle);
+    handle = window.setTimeout(() => fn.apply(this, args), wait);
+  };
+}
