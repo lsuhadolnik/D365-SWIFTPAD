@@ -404,6 +404,7 @@ async function openSpotlight(options?: { tip?: boolean }) {
     } else if (state === Step.ImpersonateSearch) {
       progressText.textContent = 'Loading...';
       progress.style.display = 'block';
+      console.log('[ui.ts] sending search', q);
       chrome.runtime.sendMessage({
         type: 'search',
         category: 'Impersonation',
@@ -449,6 +450,7 @@ async function openSpotlight(options?: { tip?: boolean }) {
 
   handleSpotlightMessage = function (rawMessage: any) {
     const message = rawMessage.data || rawMessage;
+    console.log('[ui.ts] received', message);
 
     // Users loaded, show on the list
     if (
@@ -701,6 +703,7 @@ async function openSpotlight(options?: { tip?: boolean }) {
       filtered = [];
       progressText.textContent = 'Loading users...';
       progress.style.display = 'block';
+      console.log('[ui.ts] requesting initial users');
       chrome.runtime.sendMessage({
         type: 'search',
         category: 'Impersonation',
@@ -730,7 +733,7 @@ async function openSpotlight(options?: { tip?: boolean }) {
 
   spotlightCleanup = () => {
     if (handleSpotlightMessage) {
-      chrome.runtime.onMessage.removeListener(handleSpotlightMessage);
+      window.removeEventListener('message', handleSpotlightMessage as EventListener);
       handleSpotlightMessage = null;
     }
   };

@@ -181,6 +181,7 @@ export class Service {
     return resp.json();
   }
   async impersonateUser(impersonateRequest: IImpersonateMessage) {
+    console.log('[servicecalls.ts] impersonateUser', impersonateRequest);
     if (typeof Xrm.Utility.getGlobalContext === 'function') {
       const privs: {
         [key: string]: {
@@ -249,6 +250,7 @@ export class Service {
       <IImpersonationResponse>{ users: resultsArray, impersonateRequest: impersonateRequest },
       'Impersonation-UserSearch' // Prevent double-execute
     );
+    console.log('[servicecalls.ts] impersonateUser results', resultsArray);
     return resultsArray;
   }
 }

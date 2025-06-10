@@ -14,7 +14,7 @@ chrome.runtime.onMessage.addListener(async function (
   sender: chrome.runtime.MessageSender,
   sendResponse
 ) {
-  console.log('Levelup background received', message);
+  console.log('[background.ts] onMessage', message, sender);
   if (message.type === 'Page') {
     const c = message.category;
     console.log('Levelup background processing category', c);
@@ -70,7 +70,7 @@ chrome.runtime.onMessage.addListener(async function (
         });
         break;
       case 'Impersonation-UserSearch':
-        console.log('Forwarding impersonation search results');
+        console.log('[background.ts] forward impersonation search results');
         if (sender.tab?.id) {
           chrome.scripting.executeScript({
             target: { tabId: sender.tab.id },
@@ -80,7 +80,7 @@ chrome.runtime.onMessage.addListener(async function (
         }
         break;
       case 'Impersonation':
-        console.log('Handling impersonation response');
+        console.log('[background.ts] handling impersonation response');
         const impersonationResponse = <IImpersonationResponse>message.content;
         if (!impersonationResponse.impersonateRequest.canImpersonate) {
           if (sender.tab?.id) {
@@ -95,6 +95,7 @@ chrome.runtime.onMessage.addListener(async function (
 
         // If more than one result or this is just a search request, return the list
         if (!impersonationResponse.impersonateRequest.url || impersonationResponse.users.length !== 1) {
+          console.log('[background.ts] returning impersonation search results');
           chrome.runtime.sendMessage(<IExtensionMessage>{
             type: 'search',
             category: 'Impersonation',
@@ -174,7 +175,7 @@ chrome.runtime.onMessage.addListener(async function (
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
     if (tab) chrome.tabs.reload(tab.id, { bypassCache: true });
   } else if (message.type === 'impersonation' || message.type === 'search' || message.type === 'openRecordQuick') {
-    console.log('Forwarding data message to content script');
+    console.log('[background.ts] forward data message', message.type, message.category);
     const data = <IImpersonateMessage | { entity: string; id: string }>message.content,
       [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
     if (!tab) return;
@@ -185,7 +186,7 @@ chrome.runtime.onMessage.addListener(async function (
       args: [message.type.toString(), message.category.toString(), data],
     });
   } else {
-    console.log('Forwarding generic message to content script');
+    console.log('[background.ts] forward generic message', message.type, message.category);
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
     if (!tab) return;
 
