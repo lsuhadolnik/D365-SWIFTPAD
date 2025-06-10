@@ -226,11 +226,11 @@
 /* Favorites UI */
 #dl-spotlight-favs {
   position: absolute;
-  top: 7%;
+  top: 4%;
   left: 50%;
   transform: translateX(-50%);
-  width: 500px;
-  padding: 5px 16px;
+  width: 527px;
+  padding: 5px 3px;
   background: rgba(255, 255, 255, 0.45);
   border-radius: 12px;
   backdrop-filter: blur(9px);
