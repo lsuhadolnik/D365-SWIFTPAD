@@ -8,6 +8,7 @@ import { loadEntityMetadata } from './metadata';
 import { SpotlightState, initialState } from './state';
 import { showToast } from './utils';
 import { requestRoles, requestEntityMetadata } from './controller';
+import { loadFavs, toggleFav, updateFav, FavCommand } from './favs';
 
 // Icon mappings used when rendering the command list
 const commandIcons: Record<string, string> = {
@@ -124,6 +125,7 @@ async function openSpotlight(options?: { tip?: boolean }) {
   const stateObj: SpotlightState = initialState();
   input.value = stateObj.query;
   input.select();
+  let favs = loadFavs();
 
   const commands = (await loadCommands()).filter((c) => c.id !== 'startImpersonationButton');
   let metadata: EntityInfo[] = [];
@@ -221,7 +223,13 @@ async function openSpotlight(options?: { tip?: boolean }) {
 
   function renderCommands() {
     const showAll = input.value.trim() === '';
-    const cmds = showAll ? (filtered as Command[]) : (filtered as Command[]).slice(0, 20);
+    let cmds = showAll ? (filtered as Command[]) : (filtered as Command[]).slice(0, 20);
+    const favMap = new Map(favs.map((f) => [f.id, f]));
+    if (showAll && favs.length) {
+      const favCmds = cmds.filter((c) => favMap.has(c.id));
+      const rest = cmds.filter((c) => !favMap.has(c.id));
+      cmds = [...favCmds, ...rest];
+    }
     cmds.forEach((cmd) => {
       const li = document.createElement('li');
       const icon = document.createElement('span');
@@ -233,10 +241,70 @@ async function openSpotlight(options?: { tip?: boolean }) {
       li.dataset.id = cmd.id;
       li.dataset.category = cmd.category;
       li.className = 'dl-listitem';
-      li.addEventListener('mouseenter', () => select(li));
+      const fav = favMap.get(cmd.id);
+      if (fav) {
+        if (fav.bgColor) li.style.background = fav.bgColor;
+        if (fav.iconColor) icon.style.color = fav.iconColor;
+        li.classList.add('dl-fav');
+      }
+      const brush = document.createElement('span');
+      brush.className = 'material-icons dl-brush';
+      brush.textContent = 'brush';
+      brush.style.display = 'none';
+      li.append(brush);
+      li.addEventListener('mouseenter', () => {
+        select(li);
+        brush.style.display = 'block';
+      });
+      li.addEventListener('mouseleave', () => {
+        brush.style.display = 'none';
+      });
       li.addEventListener('click', () => executeCommand(cmd));
+      brush.addEventListener('click', (ev) => {
+        ev.stopPropagation();
+        showPalette(cmd.id, li, icon);
+      });
       list.append(li);
     });
+  }
+
+  function showPalette(id: string, li: HTMLElement, icon: HTMLElement) {
+    let pal = li.querySelector<HTMLDivElement>('.dl-palette');
+    if (pal) {
+      pal.remove();
+      return;
+    }
+    pal = document.createElement('div');
+    pal.className = 'dl-palette';
+    const colors = ['#FFCDD2', '#F8BBD0', '#E1BEE7', '#D1C4E9', '#C5CAE9', '#BBDEFB'];
+    const bgRow = document.createElement('div');
+    bgRow.className = 'dl-pal-row';
+    colors.forEach((c) => {
+      const box = document.createElement('div');
+      box.style.background = c;
+      box.addEventListener('click', (ev) => {
+        ev.stopPropagation();
+        li.style.background = c;
+        updateFav(id, { bgColor: c });
+        pal?.remove();
+      });
+      bgRow.append(box);
+    });
+    const icRow = document.createElement('div');
+    icRow.className = 'dl-pal-row';
+    colors.forEach((c) => {
+      const box = document.createElement('div');
+      box.style.background = c;
+      box.addEventListener('click', (ev) => {
+        ev.stopPropagation();
+        icon.style.color = c;
+        updateFav(id, { iconColor: c });
+        pal?.remove();
+      });
+      icRow.append(box);
+    });
+    pal.append(bgRow, icRow);
+    li.append(pal);
   }
 
   function renderEntities() {
