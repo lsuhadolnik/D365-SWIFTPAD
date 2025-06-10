@@ -226,16 +226,16 @@
 /* Favorites UI */
 #dl-spotlight-favs {
   position: absolute;
-  top: calc(20% - 72px);
+  top: 7%;
   left: 50%;
   transform: translateX(-50%);
   width: 500px;
-  padding: 8px;
+  padding: 5px 16px;
   background: rgba(255, 255, 255, 0.45);
   border-radius: 12px;
   backdrop-filter: blur(9px);
   display: none;
-  gap: 8px;
+  gap: 0;
   justify-content: flex-start;
 }
 
@@ -245,6 +245,13 @@
   text-align: center;
   cursor: pointer;
   line-height: 1.2;
+  padding: 8px;
+  border-radius: 10px;
+}
+
+.dl-fav:hover {
+  background: #e7c9fd;
+  color: white;
 }
 
 .dl-fav-icon-wrap {
@@ -269,6 +276,8 @@
   display: -webkit-box;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
+  color: black;
+  font-size: 12px;
 }
 
 .dl-star {
