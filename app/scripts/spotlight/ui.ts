@@ -3,6 +3,7 @@
  * of results and command execution.
  */
 import { Command, EntityInfo, UserInfo, Step } from './types';
+import { IImpersonationResponse } from '../interfaces/types';
 import { loadCommands, fuzzyMatch } from './commands';
 import { loadEntityMetadata } from './metadata';
 import { SpotlightState, initialState } from './state';
@@ -401,8 +402,14 @@ async function openSpotlight(options?: { tip?: boolean }) {
         filtered = recordResults;
       }
     } else if (state === Step.ImpersonateSearch) {
-      const ql = q.toLowerCase();
-      filtered = users.filter((u) => u.fullName.toLowerCase().includes(ql) || u.userName.toLowerCase().includes(ql));
+      progressText.textContent = 'Loading...';
+      progress.style.display = 'block';
+      chrome.runtime.sendMessage({
+        type: 'search',
+        category: 'Impersonation',
+        content: { userName: q },
+      });
+      filtered = [];
     } else if (state === Step.FetchXml) {
       const ql = q.toLowerCase();
       filtered = fetchResults.filter((r) => r.name.toLowerCase().includes(ql) || r.id.toLowerCase().includes(ql));
@@ -449,11 +456,19 @@ async function openSpotlight(options?: { tip?: boolean }) {
       message.category === 'Impersonation-UserSearch' &&
       state === Step.ImpersonateSearch
     ) {
-      users = message.content as UserInfo[];
-      filtered = message.content.users;
+      const resp = message.content as IImpersonationResponse;
+      users = resp.users;
+      filtered = resp.users;
       progress.style.display = 'none';
       progressText.textContent = '';
       render();
+    } else if (message.type === 'Page' && message.category === 'Impersonation' && state === Step.ImpersonateSearch) {
+      const resp = message.content as IImpersonationResponse;
+      if (!resp.impersonateRequest.canImpersonate) {
+        progress.style.display = 'none';
+        progressText.textContent = '';
+        showToast('You do not have impersonation permissions');
+      }
     }
   };
 

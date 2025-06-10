@@ -82,7 +82,16 @@ chrome.runtime.onMessage.addListener(async function (
       case 'Impersonation':
         console.log('Handling impersonation response');
         const impersonationResponse = <IImpersonationResponse>message.content;
-        if (!impersonationResponse.impersonateRequest.canImpersonate) return;
+        if (!impersonationResponse.impersonateRequest.canImpersonate) {
+          if (sender.tab?.id) {
+            chrome.scripting.executeScript({
+              target: { tabId: sender.tab.id },
+              func: postExtensionMessageWithData,
+              args: ['Page', 'Impersonation', impersonationResponse],
+            });
+          }
+          return;
+        }
 
         // If more than one result or this is just a search request, return the list
         if (!impersonationResponse.impersonateRequest.url || impersonationResponse.users.length !== 1) {
