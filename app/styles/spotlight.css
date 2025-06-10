@@ -225,11 +225,16 @@
 
 /* Favorites UI */
 #dl-spotlight-favs {
-  margin-bottom: 6px;
-  padding: 6px;
-  background: #f9f0ff;
-  border-radius: 10px;
-  display: flex;
+  position: absolute;
+  top: calc(20% - 72px);
+  left: 50%;
+  transform: translateX(-50%);
+  width: 500px;
+  padding: 8px;
+  background: rgba(255, 255, 255, 0.45);
+  border-radius: 12px;
+  backdrop-filter: blur(9px);
+  display: none;
   gap: 8px;
   justify-content: flex-start;
 }

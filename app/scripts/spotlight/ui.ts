@@ -104,6 +104,7 @@ async function openSpotlight(options?: { tip?: boolean }) {
   }
   const favWrap = document.createElement('div');
   favWrap.id = 'dl-spotlight-favs';
+  favWrap.style.display = 'none';
   const pillWrap = document.createElement('div');
   pillWrap.id = 'dl-spotlight-pills';
   const input = document.createElement('input');
@@ -120,14 +121,14 @@ async function openSpotlight(options?: { tip?: boolean }) {
   progress.id = 'dl-spotlight-progress';
   progress.innerHTML = '<div class="dl-spinner"></div><div class="dl-progress-text"></div>';
   const progressText = progress.querySelector<HTMLDivElement>('.dl-progress-text')!;
-  container.append(logo, favWrap, pillWrap, input, list, infoPanel, progress);
+  container.append(logo, pillWrap, input, list, infoPanel, progress);
+  backdrop.append(favWrap, container);
   if (options?.tip) {
     const tip = document.createElement('div');
     tip.textContent = 'Tip: Press Ctrl+Shift+P to open this window.';
     tip.className = 'dl-tip';
     container.append(tip);
   }
-  backdrop.append(container);
   backdrop.addEventListener('click', (e) => {
     if (e.target === backdrop) closeSpotlight();
   });
@@ -215,8 +216,10 @@ async function openSpotlight(options?: { tip?: boolean }) {
   function renderFavorites() {
     favWrap.innerHTML = '';
     if (pills.length > 0 || state !== Step.Commands || favorites.size === 0) {
+      favWrap.style.display = 'none';
       return;
     }
+    favWrap.style.display = 'flex';
     Array.from(favorites)
       .slice(0, 5)
       .forEach((id) => {
