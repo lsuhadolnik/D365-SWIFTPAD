@@ -42,14 +42,16 @@ let fetchResults: { id: string; name: string }[] = [];
 let fetchEntity = '';
 let recordResults: { id: string; name: string }[] = [];
 let favorites: string[] = [];
+let favColors: Record<string, { bg: string; icon: string }> = {};
 
 async function loadFavorites() {
-  const data = await chrome.storage.sync.get('favorites');
+  const data = await chrome.storage.sync.get(['favorites', 'favColors']);
   favorites = (data.favorites as string[]) || [];
+  favColors = (data.favColors as typeof favColors) || {};
 }
 
 function saveFavorites() {
-  chrome.storage.sync.set({ favorites });
+  chrome.storage.sync.set({ favorites, favColors });
 }
 
 /**
@@ -243,7 +245,7 @@ async function openSpotlight(options?: { tip?: boolean }) {
       return;
     }
     favWrap.style.display = 'flex';
-    favorites.slice(0, 5).forEach((id, idx) => {
+    favorites.slice(0, 8).forEach((id, idx) => {
       const cmd = commands.find((c) => c.id === id);
       if (!cmd) return;
       const div = document.createElement('div');
@@ -258,11 +260,52 @@ async function openSpotlight(options?: { tip?: boolean }) {
       ic.textContent = cmd.icon || commandIcons[cmd.id] || categoryIcons[cmd.category] || 'chevron_right';
       iconWrap.append(ic);
 
+      const colors = favColors[id];
+      if (colors) {
+        iconWrap.style.background = colors.bg;
+        ic.style.color = colors.icon;
+      }
+
+      const brush = document.createElement('span');
+      brush.className = 'material-icons dl-brush';
+      brush.textContent = 'brush';
+
+      const palette = document.createElement('div');
+      palette.className = 'dl-palette';
+      palette.style.display = 'none';
+
+      const presets = [
+        { bg: '#f3e8fc', icon: '#a631af' },
+        { bg: '#e8f1fc', icon: '#1959a8' },
+        { bg: '#e8fce8', icon: '#1a7a1f' },
+        { bg: '#fff4e5', icon: '#c47a07' },
+        { bg: '#fde8f3', icon: '#c01b77' },
+        { bg: '#f0f0f0', icon: '#555555' },
+      ];
+      presets.forEach((p) => {
+        const sw = document.createElement('div');
+        sw.className = 'dl-swatch';
+        sw.style.background = p.bg;
+        sw.addEventListener('click', (ev) => {
+          ev.stopPropagation();
+          favColors[id] = { bg: p.bg, icon: p.icon };
+          saveFavorites();
+          renderFavorites();
+          palette.style.display = 'none';
+        });
+        palette.append(sw);
+      });
+
+      brush.addEventListener('click', (ev) => {
+        ev.stopPropagation();
+        palette.style.display = palette.style.display === 'none' ? 'flex' : 'none';
+      });
+
       const txt = document.createElement('div');
       txt.className = 'dl-fav-title';
       txt.textContent = cmd.title;
 
-      div.append(iconWrap, txt);
+      div.append(iconWrap, brush, palette, txt);
       div.addEventListener('click', () => executeCommand(cmd));
       div.addEventListener('dragstart', () => {
         dragIndex = idx;
