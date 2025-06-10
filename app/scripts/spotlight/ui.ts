@@ -118,7 +118,7 @@ async function openSpotlight(options?: { tip?: boolean }) {
       category: 'Impersonation',
       content: { userName: q },
     });
-  }, 300);
+  }, 100);
   container.append(logo, pillWrap, input, list, infoPanel, progress);
   if (options?.tip) {
     const tip = document.createElement('div');
