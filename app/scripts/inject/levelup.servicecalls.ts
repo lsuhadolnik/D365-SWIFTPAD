@@ -203,28 +203,36 @@ export class Service {
         return null;
       }
     }
-    const domainNameCondition = impersonateRequest.url
-      ? `<condition attribute='domainname' operator='eq' value='${impersonateRequest.userName}' />`
-      : `<condition attribute='domainname' operator='like' value='%${impersonateRequest.userName}%' />`;
-    const fullNameCondition = impersonateRequest.url
-      ? `<condition attribute='fullname' operator='eq' value='${impersonateRequest.userName}' />`
-      : `<condition attribute='fullname' operator='like' value='%${impersonateRequest.userName}%' />`;
+    const isImpersonation = !!impersonateRequest.url;
+    const query = impersonateRequest.userName;
+    const topAttr = isImpersonation ? '' : "top='20'";
+    const baseConditions = `
+            <condition attribute='isdisabled' operator='eq' value='0' />
+            <condition attribute='islicensed' operator='eq' value='1' />
+            <condition attribute='accessmode' operator='eq' value='0' />
+            ${isImpersonation ? '' : "<condition attribute='domainname' operator='not-like' value='#%' />"}`;
+    const domainNameCondition = isImpersonation
+      ? `<condition attribute='domainname' operator='eq' value='${query}' />`
+      : query
+        ? `<condition attribute='domainname' operator='like' value='%${query}%' />`
+        : '';
+    const fullNameCondition = isImpersonation
+      ? `<condition attribute='fullname' operator='eq' value='${query}' />`
+      : query
+        ? `<condition attribute='fullname' operator='like' value='%${query}%' />`
+        : '';
+    const nameFilter = query ? `<filter type="or">${domainNameCondition}${fullNameCondition}</filter>` : '';
     const request = {
       entityName: 'systemuser',
-      fetchXml: `<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='true' >
-        <entity name='systemuser' >
+      fetchXml: `<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='true' ${topAttr}>
+        <entity name='systemuser'>
           <attribute name='systemuserid' />
           <attribute name='fullname' />
           <attribute name='domainname' />
           <attribute name='azureactivedirectoryobjectid' />
           <filter>
-            <condition attribute='isdisabled' operator='eq' value='0' />
-            <condition attribute='islicensed' operator='eq' value='1' />
-            <condition attribute='accessmode' operator='eq' value='0' />
-            <filter type="or">
-              ${domainNameCondition}
-              ${fullNameCondition}
-            </filter>
+            ${baseConditions}
+            ${nameFilter}
           </filter>
           <order attribute='fullname' descending='false' />
         </entity>

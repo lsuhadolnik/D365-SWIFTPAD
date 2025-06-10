@@ -69,6 +69,16 @@ chrome.runtime.onMessage.addListener(async function (
           url: chrome.runtime.getURL('app/pages/optionsets.html'),
         });
         break;
+      case 'Impersonation-UserSearch':
+        console.log('Forwarding impersonation search results');
+        if (sender.tab?.id) {
+          chrome.scripting.executeScript({
+            target: { tabId: sender.tab.id },
+            func: postExtensionMessageWithData,
+            args: ['Page', 'Impersonation-UserSearch', message.content as IImpersonationResponse],
+          });
+        }
+        break;
       case 'Impersonation':
         console.log('Handling impersonation response');
         const impersonationResponse = <IImpersonationResponse>message.content;

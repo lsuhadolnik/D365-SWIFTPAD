@@ -12,7 +12,6 @@ export default defineConfig({
     esbuild: keepDebug ? {} : { drop: ['debugger'] },
     rollupOptions: {
       input: {
-        options: resolve(__dirname, 'app/pages/options.html'),
         grid: resolve(__dirname, 'app/pages/grid.html'),
         organisationdetails: resolve(__dirname, 'app/pages/organisationdetails.html'),
         processes: resolve(__dirname, 'app/pages/processes.html'),
