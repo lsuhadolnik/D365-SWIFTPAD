@@ -237,6 +237,8 @@
   display: none;
   gap: 0;
   justify-content: flex-start;
+  cursor: move;
+  user-select: none;
 }
 
 .dl-fav {
@@ -247,6 +249,7 @@
   line-height: 1.2;
   padding: 8px;
   border-radius: 10px;
+  user-select: none;
 }
 
 .dl-fav:hover {
@@ -263,11 +266,13 @@
   background: #f3e8fc;
   border-radius: 8px;
   margin-bottom: 4px;
+  user-select: none;
 }
 
 .dl-fav-icon {
   color: #a631af;
   font-size: 24px;
+  user-select: none;
 }
 
 .dl-fav-title {
@@ -278,6 +283,7 @@
   -webkit-line-clamp: 2;
   color: black;
   font-size: 12px;
+  user-select: none;
 }
 
 .dl-star {
@@ -287,6 +293,7 @@
   font-size: 16px;
   border-radius: 4px;
   padding: 2px;
+  user-select: none;
 }
 
 .dl-star:hover {

@@ -84,6 +84,36 @@ async function openSpotlight(options?: { tip?: boolean }) {
   const container = document.createElement('div');
   container.id = 'dl-spotlight-container';
 
+  function makeDraggable(el: HTMLElement) {
+    let offsetX = 0;
+    let offsetY = 0;
+    let dragging = false;
+
+    function move(ev: MouseEvent) {
+      if (!dragging) return;
+      el.style.transform = '';
+      el.style.left = `${ev.clientX - offsetX}px`;
+      el.style.top = `${ev.clientY - offsetY}px`;
+    }
+
+    function up() {
+      dragging = false;
+      document.removeEventListener('mousemove', move);
+      document.removeEventListener('mouseup', up);
+    }
+
+    el.addEventListener('mousedown', (ev) => {
+      if ((ev.target as HTMLElement).closest('.dl-fav')) return;
+      const rect = el.getBoundingClientRect();
+      offsetX = ev.clientX - rect.left;
+      offsetY = ev.clientY - rect.top;
+      dragging = true;
+      document.addEventListener('mousemove', move);
+      document.addEventListener('mouseup', up);
+      ev.preventDefault();
+    });
+  }
+
   const logo = document.createElement('img');
   logo.id = 'dl-spotlight-logo';
   logo.src = chrome.runtime.getURL('app/images/lp_ll.png');
@@ -105,6 +135,7 @@ async function openSpotlight(options?: { tip?: boolean }) {
   const favWrap = document.createElement('div');
   favWrap.id = 'dl-spotlight-favs';
   favWrap.style.display = 'none';
+  makeDraggable(favWrap);
   const pillWrap = document.createElement('div');
   pillWrap.id = 'dl-spotlight-pills';
   const input = document.createElement('input');
