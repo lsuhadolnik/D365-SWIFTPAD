@@ -40,6 +40,16 @@ let spotlightCleanup: (() => void) | null = null;
 let fetchResults: { id: string; name: string }[] = [];
 let fetchEntity = '';
 let recordResults: { id: string; name: string }[] = [];
+let favorites: string[] = [];
+
+async function loadFavorites() {
+  const data = await chrome.storage.sync.get('favorites');
+  favorites = (data.favorites as string[]) || [];
+}
+
+function saveFavorites() {
+  chrome.storage.sync.set({ favorites });
+}
 
 /**
  * Initialize keyboard shortcut (Ctrl+Shift+P) to open spotlight
@@ -102,6 +112,9 @@ async function openSpotlight(options?: { tip?: boolean }) {
     css.href = chrome.runtime.getURL('app/styles/spotlight.css');
     document.head.append(css);
   }
+  const favWrap = document.createElement('div');
+  favWrap.id = 'dl-spotlight-favs';
+  favWrap.style.display = 'none';
   const pillWrap = document.createElement('div');
   pillWrap.id = 'dl-spotlight-pills';
   const input = document.createElement('input');
@@ -119,13 +132,13 @@ async function openSpotlight(options?: { tip?: boolean }) {
   progress.innerHTML = '<div class="dl-spinner"></div><div class="dl-progress-text"></div>';
   const progressText = progress.querySelector<HTMLDivElement>('.dl-progress-text')!;
   container.append(logo, pillWrap, input, list, infoPanel, progress);
+  backdrop.append(favWrap, container);
   if (options?.tip) {
     const tip = document.createElement('div');
     tip.textContent = 'Tip: Press Ctrl+Shift+P to open this window.';
     tip.className = 'dl-tip';
     container.append(tip);
   }
-  backdrop.append(container);
   backdrop.addEventListener('click', (e) => {
     if (e.target === backdrop) closeSpotlight();
   });
@@ -136,6 +149,7 @@ async function openSpotlight(options?: { tip?: boolean }) {
   input.select();
 
   const commands = (await loadCommands()).filter((c) => c.id !== 'startImpersonationButton');
+  await loadFavorites();
   let metadata: EntityInfo[] = [];
   let filtered: (Command | EntityInfo)[] = commands;
   let state: Step = stateObj.state;
@@ -206,6 +220,55 @@ async function openSpotlight(options?: { tip?: boolean }) {
       }
       pillWrap.append(span);
     });
+    renderFavorites();
+  }
+
+  let dragIndex = -1;
+  function renderFavorites() {
+    favWrap.innerHTML = '';
+    if (pills.length > 0 || state !== Step.Commands || favorites.length === 0) {
+      favWrap.style.display = 'none';
+      return;
+    }
+    favWrap.style.display = 'flex';
+    favorites.slice(0, 5).forEach((id, idx) => {
+      const cmd = commands.find((c) => c.id === id);
+      if (!cmd) return;
+      const div = document.createElement('div');
+      div.className = 'dl-fav';
+      div.draggable = true;
+      div.dataset.index = String(idx);
+
+      const iconWrap = document.createElement('div');
+      iconWrap.className = 'dl-fav-icon-wrap';
+      const ic = document.createElement('span');
+      ic.className = 'material-icons dl-fav-icon';
+      ic.textContent = cmd.icon || commandIcons[cmd.id] || categoryIcons[cmd.category] || 'chevron_right';
+      iconWrap.append(ic);
+
+      const txt = document.createElement('div');
+      txt.className = 'dl-fav-title';
+      txt.textContent = cmd.title;
+
+      div.append(iconWrap, txt);
+      div.addEventListener('click', () => executeCommand(cmd));
+      div.addEventListener('dragstart', () => {
+        dragIndex = idx;
+      });
+      div.addEventListener('dragover', (ev) => {
+        ev.preventDefault();
+      });
+      div.addEventListener('drop', (ev) => {
+        ev.preventDefault();
+        const targetIdx = Number(div.dataset.index);
+        if (dragIndex < 0 || targetIdx === dragIndex) return;
+        const item = favorites.splice(dragIndex, 1)[0];
+        favorites.splice(targetIdx, 0, item);
+        saveFavorites();
+        renderFavorites();
+      });
+      favWrap.append(div);
+    });
   }
 
   function render() {
@@ -227,6 +290,7 @@ async function openSpotlight(options?: { tip?: boolean }) {
       infoPanel.style.display = 'block';
     }
     select(list.firstElementChild as HTMLLIElement | null);
+    renderFavorites();
   }
 
   function renderCommands() {
@@ -239,7 +303,22 @@ async function openSpotlight(options?: { tip?: boolean }) {
       icon.textContent = cmd.icon || commandIcons[cmd.id] || categoryIcons[cmd.category] || 'chevron_right';
       const text = document.createElement('span');
       text.textContent = cmd.title;
-      li.append(icon, text);
+      const star = document.createElement('span');
+      star.className = 'material-icons dl-star';
+      star.textContent = favorites.includes(cmd.id) ? 'star' : 'star_border';
+      star.addEventListener('click', (ev) => {
+        ev.stopPropagation();
+        const idx = favorites.indexOf(cmd.id);
+        if (idx >= 0) {
+          favorites.splice(idx, 1);
+        } else {
+          favorites.push(cmd.id);
+        }
+        saveFavorites();
+        renderFavorites();
+        star.textContent = favorites.includes(cmd.id) ? 'star' : 'star_border';
+      });
+      li.append(icon, text, star);
       li.dataset.id = cmd.id;
       li.dataset.category = cmd.category;
       li.className = 'dl-listitem';
