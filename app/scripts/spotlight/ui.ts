@@ -8,6 +8,7 @@ import { loadEntityMetadata } from './metadata';
 import { SpotlightState, initialState } from './state';
 import { showToast } from './utils';
 import { requestRoles, requestEntityMetadata } from './controller';
+import { loadDefaultViewInfo, searchRecords, renderTable, ViewInfo } from './quickOpen';
 
 // Icon mappings used when rendering the command list
 const commandIcons: Record<string, string> = {
@@ -40,6 +41,7 @@ let spotlightCleanup: (() => void) | null = null;
 let fetchResults: { id: string; name: string }[] = [];
 let fetchEntity = '';
 let recordResults: { id: string; name: string }[] = [];
+let viewInfo: ViewInfo | null = null;
 
 /**
  * Initialize keyboard shortcut (Ctrl+Shift+P) to open spotlight
@@ -200,8 +202,12 @@ async function openSpotlight(options?: { tip?: boolean }) {
 
   function render() {
     list.innerHTML = '';
-    infoPanel.style.display = 'none';
-    list.style.display = '';
+    if (state !== Step.OpenRecordId) {
+      infoPanel.style.display = 'none';
+      list.style.display = '';
+    } else {
+      infoPanel.innerHTML = '';
+    }
     if (state === Step.Commands) {
       renderCommands();
     } else if (state === Step.OpenRecordEntity) {
@@ -216,7 +222,9 @@ async function openSpotlight(options?: { tip?: boolean }) {
       list.style.display = 'none';
       infoPanel.style.display = 'block';
     }
-    select(list.firstElementChild as HTMLLIElement | null);
+    if (state !== Step.OpenRecordId) {
+      select(list.firstElementChild as HTMLLIElement | null);
+    }
   }
 
   function renderCommands() {
@@ -240,18 +248,21 @@ async function openSpotlight(options?: { tip?: boolean }) {
   }
 
   function renderEntities() {
-    debugger;
     (filtered as EntityInfo[]).slice(0, 20).forEach((ent) => {
       const li = document.createElement('li');
       li.innerHTML = `${ent.displayName} <code class="dl-code">${ent.logicalName}</code>`;
       li.className = 'dl-listitem';
       li.addEventListener('mouseenter', () => select(li));
-      li.addEventListener('click', () => {
+      li.addEventListener('click', async () => {
         selectedEntity = ent.logicalName;
         pills.push(ent.displayName);
         state = Step.OpenRecordId;
+        progressText.textContent = 'Loading view...';
+        progress.style.display = 'block';
+        viewInfo = await loadDefaultViewInfo(ent);
+        progress.style.display = 'none';
         input.value = '';
-        input.placeholder = 'Enter GUID or start typing the name of the entity';
+        input.placeholder = 'Type to search';
         recordResults = [];
         filtered = recordResults;
         list.innerHTML = '';
@@ -272,12 +283,16 @@ async function openSpotlight(options?: { tip?: boolean }) {
         li.innerHTML = `Use <code class="dl-code">${typed}</code>`;
         li.className = 'dl-listitem dl-muted';
         li.addEventListener('mouseenter', () => select(li));
-        li.addEventListener('click', () => {
+        li.addEventListener('click', async () => {
           selectedEntity = typed;
           pills.push(typed);
           state = Step.OpenRecordId;
+          progressText.textContent = 'Loading view...';
+          progress.style.display = 'block';
+          viewInfo = await loadDefaultViewInfo({ logicalName: typed });
+          progress.style.display = 'none';
           input.value = '';
-          input.placeholder = 'Enter GUID or start typing the name of the entity';
+          input.placeholder = 'Type to search';
           recordResults = [];
           filtered = recordResults;
           list.innerHTML = '';
@@ -290,32 +305,22 @@ async function openSpotlight(options?: { tip?: boolean }) {
   }
 
   function renderRecords() {
-    debugger;
-    const openListLi = document.createElement('li');
-    openListLi.textContent = `Open ${selectedEntity} list`;
-    openListLi.className = 'dl-listitem';
-    openListLi.addEventListener('mouseenter', () => select(openListLi));
-    openListLi.addEventListener('click', () => {
-      closeSpotlight();
-      openEntityList(selectedEntity);
-    });
-    list.append(openListLi);
-
-    (filtered as { id: string; name: string }[]).slice(0, 20).forEach((r) => {
-      const li = document.createElement('li');
-      li.textContent = `${r.name} (${r.id})`;
-      li.className = 'dl-listitem';
-      li.addEventListener('mouseenter', () => select(li));
-      li.addEventListener('click', () => {
+    infoPanel.style.display = 'block';
+    list.style.display = 'none';
+    renderTable(
+      infoPanel,
+      viewInfo?.columns || [],
+      (filtered as any[]).slice(0, 20),
+      metadata.find((m) => m.logicalName === selectedEntity)!.primaryIdAttribute,
+      (id) => {
         closeSpotlight();
         chrome.runtime.sendMessage({
           type: 'openRecordQuick',
           category: 'Navigation',
-          content: { entity: selectedEntity, id: r.id },
+          content: { entity: selectedEntity, id },
         });
-      });
-      list.append(li);
-    });
+      }
+    );
   }
 
   function renderUsers() {
@@ -387,13 +392,8 @@ async function openSpotlight(options?: { tip?: boolean }) {
         } else if (q.length > 2) {
           progressText.textContent = 'Loading...';
           progress.style.display = 'block';
-          const query = encodeURIComponent(q);
-          const url = `${location.origin}/api/data/v9.1/${info.logicalCollectionName}?$select=${info.primaryIdAttribute},${info.primaryNameAttribute}&$filter=contains(${info.primaryNameAttribute},'${query}')&$top=20`;
-          const data = await fetch(url).then((r) => r.json());
-          recordResults = data.value.map((v: any) => ({
-            id: v[info.primaryIdAttribute],
-            name: v[info.primaryNameAttribute],
-          }));
+          const records = await searchRecords(info, viewInfo?.columns || [info.primaryNameAttribute], q);
+          recordResults = records.map((r: any) => ({ id: r[info.primaryIdAttribute], ...r }));
           progress.style.display = 'none';
         } else {
           recordResults = [];
@@ -413,10 +413,10 @@ async function openSpotlight(options?: { tip?: boolean }) {
   });
 
   input.addEventListener('keydown', (ev) => {
-    if (ev.key === 'ArrowDown') {
+    if (state !== Step.OpenRecordId && ev.key === 'ArrowDown') {
       select((selected?.nextElementSibling as HTMLLIElement) || list.firstElementChild);
       ev.preventDefault();
-    } else if (ev.key === 'ArrowUp') {
+    } else if (state !== Step.OpenRecordId && ev.key === 'ArrowUp') {
       select((selected?.previousElementSibling as HTMLLIElement) || list.lastElementChild);
       ev.preventDefault();
     } else if (ev.key === 'Backspace' && input.value === '' && state === Step.EnvironmentInfoDisplay) {
