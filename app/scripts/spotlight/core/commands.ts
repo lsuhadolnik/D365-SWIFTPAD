@@ -1,5 +1,5 @@
 /** Utility functions for loading and filtering available commands. */
-import { Command } from './types';
+import { Command } from '../types';
 
 let commandsPromise: Promise<Command[]> | null = null;
 

@@ -2,12 +2,12 @@
  * Spotlight UI implementation. Handles keyboard activation, rendering
  * of results and command execution.
  */
-import { Command, EntityInfo, UserInfo, Step } from './types';
-import { loadCommands, fuzzyMatch } from './commands';
-import { loadEntityMetadata } from './metadata';
-import { SpotlightState, initialState } from './state';
-import { showToast } from './utils';
-import { requestRoles, requestEntityMetadata } from './controller';
+import { Command, EntityInfo, UserInfo, Step } from '../types';
+import { loadCommands, fuzzyMatch } from '../core/commands';
+import { loadEntityMetadata } from '../core/metadata';
+import { SpotlightState, initialState } from '../core/state';
+import { showToast } from '../utils/toast';
+import { requestRoles, requestEntityMetadata } from '../core/spotlight-controller';
 
 // Icon mappings used when rendering the command list
 const commandIcons: Record<string, string> = {

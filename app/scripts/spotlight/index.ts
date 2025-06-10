@@ -1,1 +1,1 @@
-export { initSpotlight, closeSpotlight } from './ui';
+export { initSpotlight, closeSpotlight } from './ui/spotlight';

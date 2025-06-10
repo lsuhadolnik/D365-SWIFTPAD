@@ -1,5 +1,5 @@
 /** Fetches and caches entity metadata for the current environment. */
-import { EntityInfo } from './types';
+import { EntityInfo } from '../types';
 
 let entityMetadataPromise: Promise<EntityInfo[]> | null = null;
 const storageKey = `dl-entity-metadata-${location.origin}`;
