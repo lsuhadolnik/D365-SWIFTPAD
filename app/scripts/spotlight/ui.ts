@@ -2,13 +2,14 @@
  * Spotlight UI implementation. Handles keyboard activation, rendering
  * of results and command execution.
  */
-import { Command, EntityInfo, UserInfo, Step } from './types';
+import { Command, EntityInfo, UserInfo, Step, ViewInfo } from './types';
 import { IImpersonationResponse } from '../interfaces/types';
 import { loadCommands, fuzzyMatch } from './commands';
 import { loadEntityMetadata } from './metadata';
 import { SpotlightState, initialState } from './state';
 import { showToast, debounce } from './utils';
 import { requestRoles, requestEntityMetadata } from './controller';
+import { loadPrimaryView, queryRecords, renderGrid } from './grid';
 
 // Icon mappings used when rendering the command list
 const commandIcons: Record<string, string> = {
@@ -40,7 +41,7 @@ let handleSpotlightMessage: ((message: any) => void) | null = null;
 let spotlightCleanup: (() => void) | null = null;
 let fetchResults: { id: string; name: string }[] = [];
 let fetchEntity = '';
-let recordResults: { id: string; name: string }[] = [];
+let recordResults: { id: string; cells: string[] }[] = [];
 let favorites: string[] = [];
 let favColors: Record<string, { bg: string; icon: string }> = {};
 
@@ -168,6 +169,7 @@ async function openSpotlight(options?: { tip?: boolean }) {
   let state: Step = stateObj.state;
   let selectedEntity = stateObj.selectedEntity;
   let users: UserInfo[] = [];
+  let viewInfo: ViewInfo | null = null;
   const pills: string[] = [...stateObj.pills];
   let checkingImpersonation = false;
 
@@ -182,6 +184,12 @@ async function openSpotlight(options?: { tip?: boolean }) {
     progress.style.display = 'block';
     metadata = await loadEntityMetadata();
     progress.style.display = 'none';
+    if (state === Step.OpenRecordId && selectedEntity) {
+      progressText.textContent = 'Loading view...';
+      progress.style.display = 'block';
+      viewInfo = await loadPrimaryView(selectedEntity);
+      progress.style.display = 'none';
+    }
     filtered = metadata;
     input.placeholder =
       state === Step.OpenRecordId ? 'Enter GUID or start typing the name of the entity' : 'Search entity...';
@@ -195,8 +203,8 @@ async function openSpotlight(options?: { tip?: boolean }) {
 
   renderPills();
 
-  let selected: HTMLLIElement | null = null;
-  function select(li: HTMLLIElement | null) {
+  let selected: HTMLElement | null = null;
+  function select(li: HTMLElement | null) {
     if (selected) selected.classList.remove('dl-selected');
     selected = li;
     if (selected) {
@@ -344,7 +352,8 @@ async function openSpotlight(options?: { tip?: boolean }) {
       list.style.display = 'none';
       infoPanel.style.display = 'block';
     }
-    select(list.firstElementChild as HTMLLIElement | null);
+    const firstItem = list.querySelector('tr, li') as HTMLElement | null;
+    select(firstItem);
     renderFavorites();
   }
 
@@ -394,7 +403,7 @@ async function openSpotlight(options?: { tip?: boolean }) {
         li.innerHTML = `${ent.displayName} <code class="dl-code">${ent.logicalName}</code>`;
         li.className = 'dl-listitem';
         li.addEventListener('mouseenter', () => select(li));
-        li.addEventListener('click', () => {
+        li.addEventListener('click', async () => {
           selectedEntity = ent.logicalName;
           pills.push(ent.displayName);
           state = Step.OpenRecordId;
@@ -403,6 +412,10 @@ async function openSpotlight(options?: { tip?: boolean }) {
           recordResults = [];
           filtered = recordResults;
           list.innerHTML = '';
+          progressText.textContent = 'Loading view...';
+          progress.style.display = 'block';
+          viewInfo = await loadPrimaryView(selectedEntity);
+          progress.style.display = 'none';
           renderPills();
           render();
         });
@@ -448,7 +461,7 @@ async function openSpotlight(options?: { tip?: boolean }) {
         li.innerHTML = `Use <code class="dl-code">${typed}</code>`;
         li.className = 'dl-listitem dl-muted';
         li.addEventListener('mouseenter', () => select(li));
-        li.addEventListener('click', () => {
+        li.addEventListener('click', async () => {
           selectedEntity = typed;
           pills.push(typed);
           state = Step.OpenRecordId;
@@ -457,6 +470,10 @@ async function openSpotlight(options?: { tip?: boolean }) {
           recordResults = [];
           filtered = recordResults;
           list.innerHTML = '';
+          progressText.textContent = 'Loading view...';
+          progress.style.display = 'block';
+          viewInfo = await loadPrimaryView(selectedEntity);
+          progress.style.display = 'none';
           renderPills();
           render();
         });
@@ -466,32 +483,34 @@ async function openSpotlight(options?: { tip?: boolean }) {
   }
 
   function renderRecords() {
-    debugger;
-    (filtered as { id: string; name: string }[]).slice(0, 20).forEach((r) => {
-      const li = document.createElement('li');
-      li.textContent = `${r.name} (${r.id})`;
-      li.className = 'dl-listitem';
-      li.addEventListener('mouseenter', () => select(li));
-      li.addEventListener('click', () => {
+    if (!viewInfo) return;
+    renderGrid(
+      list,
+      viewInfo,
+      filtered as { id: string; cells: string[] }[],
+      (id) => {
         closeSpotlight();
         chrome.runtime.sendMessage({
           type: 'openRecordQuick',
           category: 'Navigation',
-          content: { entity: selectedEntity, id: r.id },
+          content: { entity: selectedEntity, id },
         });
-      });
-      list.append(li);
-    });
+      },
+      (row) => select(row as unknown as HTMLLIElement)
+    );
 
-    const openListLi = document.createElement('li');
-    openListLi.textContent = `Open ${selectedEntity} list`;
+    const openListLi = document.createElement('tr');
+    const td = document.createElement('td');
+    td.textContent = `Open ${selectedEntity} list`;
+    td.colSpan = viewInfo.columns.length;
+    openListLi.append(td);
     openListLi.className = 'dl-listitem';
-    openListLi.addEventListener('mouseenter', () => select(openListLi));
+    openListLi.addEventListener('mouseenter', () => select(openListLi as any));
     openListLi.addEventListener('click', () => {
       closeSpotlight();
       openEntityList(selectedEntity);
     });
-    list.append(openListLi);
+    (list.querySelector('tbody') || list).append(openListLi);
   }
 
   function renderUsers() {
@@ -557,23 +576,11 @@ async function openSpotlight(options?: { tip?: boolean }) {
       filtered = items;
     } else if (state === Step.OpenRecordId) {
       const info = metadata.find((m) => m.logicalName === selectedEntity);
-      if (info) {
-        if (/^[{]?[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}[}]?$/.test(q)) {
-          recordResults = [{ id: q.replace(/[{}]/g, ''), name: q.replace(/[{}]/g, '') }];
-        } else if (q.length > 2) {
-          progressText.textContent = 'Loading...';
-          progress.style.display = 'block';
-          const query = encodeURIComponent(q);
-          const url = `${location.origin}/api/data/v9.1/${info.logicalCollectionName}?$select=${info.primaryIdAttribute},${info.primaryNameAttribute}&$filter=contains(${info.primaryNameAttribute},'${query}')&$top=20`;
-          const data = await fetch(url).then((r) => r.json());
-          recordResults = data.value.map((v: any) => ({
-            id: v[info.primaryIdAttribute],
-            name: v[info.primaryNameAttribute],
-          }));
-          progress.style.display = 'none';
-        } else {
-          recordResults = [];
-        }
+      if (info && viewInfo) {
+        progressText.textContent = 'Loading...';
+        progress.style.display = 'block';
+        recordResults = await queryRecords(selectedEntity, q, viewInfo, info);
+        progress.style.display = 'none';
         filtered = recordResults;
       }
     } else if (state === Step.ImpersonateSearch) {
@@ -590,10 +597,14 @@ async function openSpotlight(options?: { tip?: boolean }) {
 
   input.addEventListener('keydown', (ev) => {
     if (ev.key === 'ArrowDown') {
-      select((selected?.nextElementSibling as HTMLLIElement) || list.firstElementChild);
+      const next = selected?.nextElementSibling as HTMLElement | null;
+      const first = list.querySelector('tr, li');
+      select(next || (first as HTMLElement | null));
       ev.preventDefault();
     } else if (ev.key === 'ArrowUp') {
-      select((selected?.previousElementSibling as HTMLLIElement) || list.lastElementChild);
+      const prev = selected?.previousElementSibling as HTMLElement | null;
+      const last = Array.from(list.querySelectorAll('tr, li')).pop();
+      select(prev || (last as HTMLElement | null));
       ev.preventDefault();
     } else if (ev.key === 'Backspace' && input.value === '' && pills.length > 0) {
       pills.pop();

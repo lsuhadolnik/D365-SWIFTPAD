@@ -340,3 +340,20 @@
   cursor: pointer;
   border: 1px solid #ccc;
 }
+
+/* Grid styles */
+.dl-grid {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.dl-grid th,
+.dl-grid td {
+  padding: 4px 6px;
+  border: 1px solid #ddd;
+  text-align: left;
+}
+
+.dl-grid tr.dl-selected {
+  background: #e0e0e0;
+}

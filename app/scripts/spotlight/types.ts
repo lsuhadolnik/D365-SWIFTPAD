@@ -19,6 +19,15 @@ export interface UserInfo {
   fullName: string;
 }
 
+export interface ViewColumn {
+  name: string;
+  label: string;
+}
+
+export interface ViewInfo {
+  columns: ViewColumn[];
+}
+
 export enum Step {
   Commands,
   OpenRecordEntity,
