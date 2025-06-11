@@ -108,9 +108,7 @@ export class Navigation {
           this.openRecord('mailbox', results[0].MailboxId || results[0].mailboxid);
         }
       })
-      .catch((err) => {
-        console.log(err);
-      });
+      .catch(() => {});
   }
 
   diagnostics() {
@@ -172,6 +170,23 @@ export class Navigation {
 
   openMakePowerApps() {
     window.open('https://make.powerapps.com', '_blank');
+  }
+
+  manageAppUsers() {
+    const env = this.utility.environmentDetail;
+    if (env?.OrganizationId) {
+      window.open(`https://admin.powerplatform.microsoft.com/environments/${env.OrganizationId}/appusers`, '_blank');
+    }
+  }
+
+  manageUsers() {
+    const env = this.utility.environmentDetail;
+    if (env?.OrganizationId && env?.EnvironmentId) {
+      window.open(
+        `https://admin.powerplatform.microsoft.com/environments/${env.OrganizationId}/${env.EnvironmentId}/users`,
+        '_blank'
+      );
+    }
   }
 
   reloadData() {

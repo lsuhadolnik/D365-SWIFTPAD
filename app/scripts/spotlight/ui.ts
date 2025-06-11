@@ -9,6 +9,7 @@ import { loadEntityMetadata } from './metadata';
 import { SpotlightState, initialState } from './state';
 import { showToast, debounce } from './utils';
 import { requestRoles, requestEntityMetadata } from './controller';
+import { pref, strip } from '../prefix';
 
 // Icon mappings used when rendering the command list
 const commandIcons: Record<string, string> = {
@@ -17,6 +18,8 @@ const commandIcons: Record<string, string> = {
   impersonationResetSpotlight: 'person_off',
   openAdmin: 'open_in_new',
   openMakePowerApps: 'open_in_new',
+  manageAppUsers: 'open_in_new',
+  manageUsers: 'open_in_new',
   entityInfoSpotlight: 'info',
   reloadData: 'refresh',
   autoReload: 'autorenew',
@@ -137,9 +140,8 @@ async function openSpotlight(options?: { tip?: boolean }) {
   const sendSearch = debounce((q: string) => {
     progressText.textContent = 'Loading...';
     progress.style.display = 'block';
-    console.log('[ui.ts] sending search', q);
     chrome.runtime.sendMessage({
-      type: 'search',
+      type: pref('search'),
       category: 'Impersonation',
       content: { userName: q },
     });
@@ -384,7 +386,6 @@ async function openSpotlight(options?: { tip?: boolean }) {
   }
 
   function renderEntities() {
-    debugger;
     const queryEmpty = input.value.trim() === '';
     const currentEntity = queryEmpty ? currentEntityFromUrl() : null;
     if (currentEntity) {
@@ -466,7 +467,6 @@ async function openSpotlight(options?: { tip?: boolean }) {
   }
 
   function renderRecords() {
-    debugger;
     (filtered as { id: string; name: string }[]).slice(0, 20).forEach((r) => {
       const li = document.createElement('li');
       li.textContent = `${r.name} (${r.id})`;
@@ -475,7 +475,7 @@ async function openSpotlight(options?: { tip?: boolean }) {
       li.addEventListener('click', () => {
         closeSpotlight();
         chrome.runtime.sendMessage({
-          type: 'openRecordQuick',
+          type: pref('openRecordQuick'),
           category: 'Navigation',
           content: { entity: selectedEntity, id: r.id },
         });
@@ -503,7 +503,7 @@ async function openSpotlight(options?: { tip?: boolean }) {
       li.addEventListener('click', () => {
         closeSpotlight();
         chrome.runtime.sendMessage({
-          type: 'Page',
+          type: pref('Page'),
           category: 'Impersonation',
           content: {
             impersonateRequest: {
@@ -528,7 +528,7 @@ async function openSpotlight(options?: { tip?: boolean }) {
       li.addEventListener('click', () => {
         closeSpotlight();
         chrome.runtime.sendMessage({
-          type: 'openRecordQuick',
+          type: pref('openRecordQuick'),
           category: 'Navigation',
           content: { entity: fetchEntity, id: r.id },
         });
@@ -628,10 +628,10 @@ async function openSpotlight(options?: { tip?: boolean }) {
 
   handleSpotlightMessage = function (rawMessage: any) {
     const message = rawMessage.data || rawMessage;
-    console.log('[ui.ts] received', message);
+    const type = strip(message.type);
 
     if (
-      message.type === 'Page' &&
+      type === 'Page' &&
       message.category === 'Impersonation-UserSearch' &&
       (state === Step.ImpersonateSearch || checkingImpersonation)
     ) {
@@ -652,7 +652,7 @@ async function openSpotlight(options?: { tip?: boolean }) {
         filtered = resp.users;
       }
       render();
-    } else if (message.type === 'Page' && message.category === 'Impersonation' && checkingImpersonation) {
+    } else if (type === 'Page' && message.category === 'Impersonation' && checkingImpersonation) {
       const resp = message.content as IImpersonationResponse;
       checkingImpersonation = false;
       progress.style.display = 'none';
@@ -660,7 +660,7 @@ async function openSpotlight(options?: { tip?: boolean }) {
       if (!resp.impersonateRequest.canImpersonate) {
         showToast('You do not have impersonation permissions');
       }
-    } else if (message.type === 'Page' && message.category === 'Impersonation' && state === Step.ImpersonateSearch) {
+    } else if (type === 'Page' && message.category === 'Impersonation' && state === Step.ImpersonateSearch) {
       const resp = message.content as IImpersonationResponse;
       if (!resp.impersonateRequest.canImpersonate) {
         progress.style.display = 'none';
@@ -894,16 +894,15 @@ async function openSpotlight(options?: { tip?: boolean }) {
       checkingImpersonation = true;
       progressText.textContent = 'Checking permissions...';
       progress.style.display = 'block';
-      console.log('[ui.ts] requesting initial users');
       chrome.runtime.sendMessage({
-        type: 'search',
+        type: pref('search'),
         category: 'Impersonation',
         content: { userName: '' },
       });
       return;
     } else if (cmd.id === 'impersonationResetSpotlight') {
       closeSpotlight();
-      chrome.runtime.sendMessage({ type: 'reset', category: 'Impersonation' });
+      chrome.runtime.sendMessage({ type: pref('reset'), category: 'Impersonation' });
       return;
     } else if (cmd.id === 'refreshEntityMetadata') {
       progressText.textContent = 'Loading metadata...';
@@ -915,7 +914,7 @@ async function openSpotlight(options?: { tip?: boolean }) {
       return;
     }
     closeSpotlight();
-    chrome.runtime.sendMessage({ type: cmd.id, category: cmd.category });
+    chrome.runtime.sendMessage({ type: pref(cmd.id), category: cmd.category });
   }
 
   render();

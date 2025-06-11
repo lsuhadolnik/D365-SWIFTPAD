@@ -30,7 +30,16 @@ export class Forms {
       schemaNameInput.setAttribute('class', 'levelupschema');
       schemaNameInput.setAttribute('style', 'background: darkslategray; color: #f9fcfe; font-size: 14px;');
       schemaNameInput.value = controlName;
+      schemaNameInput.title = 'Click to copy';
+      schemaNameInput.addEventListener('click', () => {
+        navigator.clipboard.writeText(controlName).catch(() => Utility.copy(controlName));
+      });
       if (controlNode && controlNode.parentNode) {
+        const parent = controlNode.parentElement as HTMLElement;
+        if (parent) {
+          parent.style.display = 'flex';
+          parent.style.flexDirection = 'column';
+        }
         controlNode.parentNode.insertBefore(schemaNameInput, controlNode);
       }
     };
@@ -421,9 +430,7 @@ export class Forms {
           : results;
         this.utility.messageExtension(results, 'workflows');
       })
-      .catch((err) => {
-        console.log(err);
-      });
+      .catch(() => {});
   }
 
   openLookupNewWindow() {
@@ -454,7 +461,6 @@ export class Forms {
             keys.forEach((k) => {
               resultsArray.push({ cells: [k, r[k]] });
             });
-            console.log(r);
             this.utility.messageExtension(resultsArray, 'allFields');
           });
         }

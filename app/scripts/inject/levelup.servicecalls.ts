@@ -22,7 +22,6 @@ export class Service {
         resultsArray.push({ cells: [k, this.utility.environmentDetail[k]] });
       }
     });
-    console.log(this.utility.environmentDetail);
     this.utility.messageExtension(resultsArray, 'environment');
   }
 
@@ -43,9 +42,7 @@ export class Service {
         }
         this.utility.messageExtension(settingsArray, 'Settings');
       })
-      .catch((err) => {
-        console.log(err);
-      });
+      .catch(() => {});
   }
 
   myRoles() {
@@ -77,9 +74,7 @@ export class Service {
         });
         this.utility.messageExtension(resultsArray, 'myRoles');
       })
-      .catch((err) => {
-        console.log(err);
-      });
+      .catch(() => {});
   }
 
   allUserRoles() {
@@ -104,7 +99,6 @@ export class Service {
         });
       })
       .then((entities) => {
-        console.log(entities);
         entities.forEach((attributes) => {
           const userId = attributes['systemuserid'],
             userName = attributes['fullname'];
@@ -122,7 +116,7 @@ export class Service {
         });
         utility.messageExtension(resultsArray, 'allUserRoles');
       })
-      .catch((err) => console.log(err));
+      .catch(() => {});
   }
 
   entityMetadata() {
@@ -181,7 +175,6 @@ export class Service {
     return resp.json();
   }
   async impersonateUser(impersonateRequest: IImpersonateMessage) {
-    console.log('[servicecalls.ts] impersonateUser', impersonateRequest);
     if (typeof Xrm.Utility.getGlobalContext === 'function') {
       const privs: {
         [key: string]: {
@@ -250,7 +243,6 @@ export class Service {
       <IImpersonationResponse>{ users: resultsArray, impersonateRequest: impersonateRequest },
       'Impersonation-UserSearch' // Prevent double-execute
     );
-    console.log('[servicecalls.ts] impersonateUser results', resultsArray);
     return resultsArray;
   }
 }

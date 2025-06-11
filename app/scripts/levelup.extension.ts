@@ -4,6 +4,7 @@ import { Forms } from './inject/levelup.forms';
 import { Service } from './inject/levelup.servicecalls';
 import { Navigation } from './inject/levelup.navigation';
 import { Grid } from './inject/levelup.grid';
+import { pref, strip } from './prefix';
 
 window.addEventListener('message', async function (event) {
   let utility: Utility;
@@ -11,15 +12,14 @@ window.addEventListener('message', async function (event) {
   let formDocument: Document;
   let xrm: Xrm.XrmStatic;
 
-  console.log('Levelup received window message', event.data);
-
+  const msgType = strip(event.data?.type);
   // Ignore messages that are results from this page to avoid infinite loops
-  if (event.data?.type === 'Page') return;
+  if (msgType === 'Page') return;
 
   // home.dynamics.com also messaging. Ignore.
   if (location.origin !== event.origin && location.origin !== `${event.origin}.mcas.ms`) return;
   const source = <Window>event.source;
-  if (source.Xrm && event.data.type) {
+  if (source.Xrm && msgType) {
     const clientUrl =
       (source.Xrm.Page.context.getCurrentAppUrl && source.Xrm.Page.context.getCurrentAppUrl()) ||
       source.Xrm.Page.context.getClientUrl();
@@ -57,8 +57,7 @@ window.addEventListener('message', async function (event) {
       return;
     }
     try {
-      const message = <IExtensionMessage>event.data;
-      console.log('Levelup executing message', message);
+      const message = { ...(event.data as IExtensionMessage), type: msgType } as IExtensionMessage;
       switch (message.category) {
         case 'Forms':
           new Forms(utility)[message.type]();
@@ -84,14 +83,14 @@ window.addEventListener('message', async function (event) {
         case 'myRolesRequest':
           {
             const roles = await new Service(utility).getMyRolesData();
-            window.postMessage({ type: 'myRolesResponse', content: roles }, '*');
+            window.postMessage({ type: pref('myRolesResponse'), content: roles }, '*');
           }
           break;
         case 'entityMetadataRequest':
           {
             const entity = message.content as string;
             const meta = await new Service(utility).getEntityMetadataData(entity);
-            window.postMessage({ type: 'entityMetadataResponse', content: meta }, '*');
+            window.postMessage({ type: pref('entityMetadataResponse'), content: meta }, '*');
           }
           break;
         case 'myRoles':

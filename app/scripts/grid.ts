@@ -1,6 +1,8 @@
+import { pref } from './prefix';
+
 chrome.runtime.sendMessage(
   {
-    type: 'Page',
+    type: pref('Page'),
     category: 'Load',
   },
   (rows) => {

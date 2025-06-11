@@ -1,6 +1,7 @@
 import { Utility } from './inject/levelup.common.utility';
 import { ICustomMessage } from './interfaces/types';
 import { initSpotlight } from './spotlight';
+import { strip } from './prefix';
 
 class App {
   isCRMPage: boolean;
@@ -12,13 +13,10 @@ class App {
         x.src.indexOf('/_static/_common/scripts/PageLoader.js') !== -1 ||
         x.src.indexOf('/_static/_common/scripts/crminternalutility.js') !== -1
     );
-    console.log('Levelup App initialized', {
-      isCRMPage: this.isCRMPage,
-    });
+    // initialization log removed
   }
 
   start() {
-    console.log('Levelup App starting');
     this.hookupEventListeners();
     initSpotlight();
     if (this.isCRMPage) {
@@ -32,15 +30,11 @@ class App {
 
   private hookupEventListeners() {
     document.addEventListener('levelup', (data: ICustomMessage) => {
-      if (data.detail && data.detail.type === 'Page') {
-        // Avoid forwarding impersonation responses back to the page to
-        // prevent infinite loops. Spotlight listens directly for these
-        // window messages.
+      const type = strip(data.detail?.type);
+      if (data.detail && type === 'Page') {
         if (data.detail.category === 'Impersonation' || data.detail.category === 'Impersonation-UserSearch') {
-          console.log('[app.ts] swallow impersonation message', data.detail);
           return;
         }
-        console.log('Levelup message dispatched to background', data.detail);
         chrome.runtime.sendMessage(data.detail);
       }
     });

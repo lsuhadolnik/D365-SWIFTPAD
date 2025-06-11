@@ -220,6 +220,16 @@
     "title": "Open make.powerapps.com"
   },
   {
+    "id": "manageAppUsers",
+    "category": "Navigation",
+    "title": "Manage Application Users"
+  },
+  {
+    "id": "manageUsers",
+    "category": "Navigation",
+    "title": "Manage Users"
+  },
+  {
     "id": "entityInfoSpotlight",
     "category": "Navigation",
     "title": "Current record details"
