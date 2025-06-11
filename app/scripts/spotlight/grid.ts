@@ -21,21 +21,49 @@ export async function loadPrimaryView(entity: string): Promise<ViewInfo> {
   return info;
 }
 
+function xmlEscape(str: string) {
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&apos;');
+}
+
 export async function queryRecords(
   entity: string,
   q: string,
   view: ViewInfo,
   info: EntityInfo
 ): Promise<{ id: string; cells: string[] }[]> {
-  if (/^[{]?[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}[}]?$/.test(q)) {
+  const guidMatch = /^[{]?[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}[}]?$/.test(q);
+  const attributes = Array.from(new Set([info.primaryIdAttribute, ...view.columns.map((c) => c.name)]));
+  if (guidMatch) {
     const id = q.replace(/[{}]/g, '');
-    return [{ id, cells: [id] }];
+    const url = `${location.origin}/api/data/v9.1/${info.logicalCollectionName}(${id})?$select=${attributes.join(',')}`;
+    const data = await fetch(url).then((r) => r.json());
+    if (!data || data.error) return [];
+    return [
+      {
+        id: data[info.primaryIdAttribute],
+        cells: view.columns.map((c) => data[c.name] ?? ''),
+      },
+    ];
   }
+
   if (q.length < 2) return [];
-  const escaped = q.replace(/'/g, "''");
-  const select = [info.primaryIdAttribute, ...view.columns.map((c) => c.name)].join(',');
-  const filter = view.columns.map((c) => `contains(${c.name},'${escaped}')`).join(' or ');
-  const url = `${location.origin}/api/data/v9.1/${info.logicalCollectionName}?$select=${select}&$filter=${filter}&$top=20`;
+  const val = xmlEscape(q);
+  const searchCols = view.columns.filter((c) => !/id$/i.test(c.name));
+  const conditions = searchCols
+    .map((c) => `<condition attribute='${c.name}' operator='like' value='%${val}%' />`)
+    .join('');
+  const fetchXml =
+    `<fetch mapping='logical' top='20'>` +
+    `<entity name='${entity}'>` +
+    attributes.map((a) => `<attribute name='${a}' />`).join('') +
+    `<filter type='or'>${conditions}</filter>` +
+    `</entity></fetch>`;
+  const url = `${location.origin}/api/data/v9.1/${info.logicalCollectionName}?fetchXml=${encodeURIComponent(fetchXml)}`;
   const data = await fetch(url).then((r) => r.json());
   return (data.value || []).map((r: any) => ({
     id: r[info.primaryIdAttribute],
