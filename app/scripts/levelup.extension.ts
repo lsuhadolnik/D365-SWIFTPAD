@@ -72,6 +72,8 @@ window.addEventListener('message', async function (event) {
           if (message.type === 'openRecordQuick') {
             const content = message.content as { entity: string; id: string };
             new Navigation(utility).openRecord(content.entity, content.id);
+          } else if (message.type === 'newRecord') {
+            new Navigation(utility).newRecord(message.content as string | undefined);
           } else {
             new Navigation(utility)[message.type]();
           }

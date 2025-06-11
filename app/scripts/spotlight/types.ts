@@ -23,6 +23,8 @@ export enum Step {
   Commands,
   OpenRecordEntity,
   OpenRecordId,
+  OpenListEntity,
+  NewRecordEntity,
   ImpersonateSearch,
   FetchXml,
   EntityInfoDisplay,

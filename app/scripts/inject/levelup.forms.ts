@@ -4,13 +4,7 @@ export class Forms {
   constructor(private utility: Utility) {}
 
   clearLogicalNames() {
-    this.utility.formDocument.querySelectorAll('.levelupschema').forEach((x) => {
-      const parent = x.parentElement as HTMLElement | null;
-      if (parent && parent.style.flexDirection === 'column') {
-        parent.style.flexDirection = '';
-      }
-      x.remove();
-    });
+    this.utility.formDocument.querySelectorAll('.levelupschema').forEach((x) => x.remove());
   }
 
   entityMetadata() {

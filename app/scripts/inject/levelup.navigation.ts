@@ -23,8 +23,10 @@ export class Navigation {
     }
   }
 
-  newRecord() {
-    const entityName = prompt('Entity?', '');
+  newRecord(entityName?: string) {
+    if (!entityName) {
+      entityName = prompt('Entity?', '') || '';
+    }
     if (entityName) {
       window.open(`${this.utility.clientUrlForParams}etn=${entityName}&newWindow=true&pagetype=entityrecord`, '_blank');
     }

@@ -174,11 +174,6 @@
     "title": "Enable Performance Center"
   },
   {
-    "id": "instancePicker",
-    "category": "Navigation",
-    "title": "Open Instance Picker"
-  },
-  {
     "id": "openGrid",
     "category": "Grid",
     "title": "Open Record List"

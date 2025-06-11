@@ -179,7 +179,12 @@ async function openSpotlight(options?: { tip?: boolean }) {
     selectedEntity = '';
   }
 
-  if (state === Step.OpenRecordEntity || state === Step.OpenRecordId) {
+  if (
+    state === Step.OpenRecordEntity ||
+    state === Step.OpenRecordId ||
+    state === Step.OpenListEntity ||
+    state === Step.NewRecordEntity
+  ) {
     progressText.textContent = 'Loading metadata...';
     progress.style.display = 'block';
     metadata = await loadEntityMetadata();
@@ -334,7 +339,7 @@ async function openSpotlight(options?: { tip?: boolean }) {
     list.style.display = '';
     if (state === Step.Commands) {
       renderCommands();
-    } else if (state === Step.OpenRecordEntity) {
+    } else if (state === Step.OpenRecordEntity || state === Step.OpenListEntity || state === Step.NewRecordEntity) {
       renderEntities();
     } else if (state === Step.OpenRecordId) {
       renderRecords();
@@ -397,6 +402,20 @@ async function openSpotlight(options?: { tip?: boolean }) {
         li.addEventListener('mouseenter', () => select(li));
         li.addEventListener('click', () => {
           selectedEntity = ent.logicalName;
+          if (state === Step.OpenListEntity) {
+            closeSpotlight();
+            openEntityList(ent.logicalName);
+            return;
+          }
+          if (state === Step.NewRecordEntity) {
+            closeSpotlight();
+            chrome.runtime.sendMessage({
+              type: pref('newRecord'),
+              category: 'Navigation',
+              content: ent.logicalName,
+            });
+            return;
+          }
           pills.push(ent.displayName);
           state = Step.OpenRecordId;
           input.value = '';
@@ -425,6 +444,20 @@ async function openSpotlight(options?: { tip?: boolean }) {
         li.addEventListener('mouseenter', () => select(li));
         li.addEventListener('click', () => {
           selectedEntity = ent.logicalName;
+          if (state === Step.OpenListEntity) {
+            closeSpotlight();
+            openEntityList(ent.logicalName);
+            return;
+          }
+          if (state === Step.NewRecordEntity) {
+            closeSpotlight();
+            chrome.runtime.sendMessage({
+              type: pref('newRecord'),
+              category: 'Navigation',
+              content: ent.logicalName,
+            });
+            return;
+          }
           pills.push(ent.displayName);
           state = Step.OpenRecordId;
           input.value = '';
@@ -442,7 +475,7 @@ async function openSpotlight(options?: { tip?: boolean }) {
         });
         list.append(li);
       });
-    if (state === Step.OpenRecordEntity) {
+    if (state === Step.OpenRecordEntity || state === Step.OpenListEntity || state === Step.NewRecordEntity) {
       const typed = input.value.trim();
       if (typed && !metadata.some((m) => m.logicalName.toLowerCase() === typed.toLowerCase())) {
         const li = document.createElement('li');
@@ -451,6 +484,20 @@ async function openSpotlight(options?: { tip?: boolean }) {
         li.addEventListener('mouseenter', () => select(li));
         li.addEventListener('click', () => {
           selectedEntity = typed;
+          if (state === Step.OpenListEntity) {
+            closeSpotlight();
+            openEntityList(typed);
+            return;
+          }
+          if (state === Step.NewRecordEntity) {
+            closeSpotlight();
+            chrome.runtime.sendMessage({
+              type: pref('newRecord'),
+              category: 'Navigation',
+              content: typed,
+            });
+            return;
+          }
           pills.push(typed);
           state = Step.OpenRecordId;
           input.value = '';
@@ -676,6 +723,32 @@ async function openSpotlight(options?: { tip?: boolean }) {
     if (cmd.id === 'openRecordSpotlight') {
       state = Step.OpenRecordEntity;
       pills.push('Open');
+      progressText.textContent = 'Loading metadata...';
+      progress.style.display = 'block';
+      metadata = await loadEntityMetadata();
+      progress.style.display = 'none';
+      filtered = metadata;
+      input.placeholder = 'Search entity...';
+      input.value = '';
+      renderPills();
+      render();
+      return;
+    } else if (cmd.id === 'openList') {
+      state = Step.OpenListEntity;
+      pills.push('List');
+      progressText.textContent = 'Loading metadata...';
+      progress.style.display = 'block';
+      metadata = await loadEntityMetadata();
+      progress.style.display = 'none';
+      filtered = metadata;
+      input.placeholder = 'Search entity...';
+      input.value = '';
+      renderPills();
+      render();
+      return;
+    } else if (cmd.id === 'newRecord') {
+      state = Step.NewRecordEntity;
+      pills.push('New');
       progressText.textContent = 'Loading metadata...';
       progress.style.display = 'block';
       metadata = await loadEntityMetadata();
