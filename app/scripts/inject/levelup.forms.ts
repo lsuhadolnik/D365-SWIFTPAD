@@ -40,7 +40,10 @@ export class Forms {
       schemaNameInput.textContent = controlName;
       schemaNameInput.title = 'Click to copy';
       schemaNameInput.addEventListener('click', () => {
-        navigator.clipboard.writeText(controlName).catch(() => Utility.copy(controlName));
+        navigator.clipboard
+          .writeText(controlName)
+          .catch(() => Utility.copy(controlName))
+          .finally(() => this.showToast(`Copied ${controlName}`));
       });
       if (controlNode && controlNode.parentNode) {
         const parent = controlNode.parentElement as HTMLElement;
