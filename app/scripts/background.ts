@@ -8,7 +8,7 @@ import {
 import { pref, strip } from './prefix';
 
 let userId: string;
-let content: ExtensionMessageContent;
+let content: { data: ExtensionMessageContent; category?: string };
 
 chrome.runtime.onMessage.addListener(async function (
   message: IExtensionMessage,
@@ -20,7 +20,7 @@ chrome.runtime.onMessage.addListener(async function (
     const c = message.category;
     switch (c) {
       case 'Settings':
-        content = message.content;
+        content = { data: message.content, category: c };
         chrome.tabs.create({
           url: chrome.runtime.getURL('app/pages/organisationdetails.html'),
         });
@@ -30,13 +30,13 @@ chrome.runtime.onMessage.addListener(async function (
       case 'quickFindFields':
       case 'entityMetadata':
       case 'environment':
-        content = message.content;
+        content = { data: message.content, category: c };
         chrome.tabs.create({
           url: chrome.runtime.getURL('app/pages/grid.html'),
         });
         break;
       case 'workflows':
-        content = message.content;
+        content = { data: message.content, category: c };
         chrome.tabs.create({
           url: chrome.runtime.getURL('app/pages/processes.html'),
         });
@@ -51,13 +51,13 @@ chrome.runtime.onMessage.addListener(async function (
         sendResponse(content);
         break;
       case 'allUserRoles':
-        content = message.content;
+        content = { data: message.content, category: c };
         chrome.tabs.create({
           url: chrome.runtime.getURL('app/pages/userroles.html'),
         });
         break;
       case 'optionsets':
-        content = message.content;
+        content = { data: message.content, category: c };
         chrome.tabs.create({
           url: chrome.runtime.getURL('app/pages/optionsets.html'),
         });

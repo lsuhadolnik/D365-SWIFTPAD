@@ -4,7 +4,13 @@ export class Forms {
   constructor(private utility: Utility) {}
 
   clearLogicalNames() {
-    this.utility.formDocument.querySelectorAll('.levelupschema').forEach((x) => x.remove());
+    this.utility.formDocument.querySelectorAll('.levelupschema').forEach((x) => {
+      const parent = x.parentElement as HTMLElement | null;
+      if (parent && parent.style.flexDirection === 'column') {
+        parent.style.flexDirection = '';
+      }
+      x.remove();
+    });
   }
 
   entityMetadata() {
@@ -25,11 +31,13 @@ export class Forms {
     this.utility.formDocument.querySelectorAll('.levelupschema').forEach((x) => x.remove());
 
     const createSchemaNameInput = (controlName, controlNode) => {
-      const schemaNameInput = this.utility.formDocument.createElement('input');
-      schemaNameInput.setAttribute('type', 'text');
+      const schemaNameInput = this.utility.formDocument.createElement('div');
       schemaNameInput.setAttribute('class', 'levelupschema');
-      schemaNameInput.setAttribute('style', 'background: darkslategray; color: #f9fcfe; font-size: 14px;');
-      schemaNameInput.value = controlName;
+      schemaNameInput.setAttribute(
+        'style',
+        'background:#9a499f;color:#feedff;font-size:14px;border-radius:3px;padding:3px 5px 3px 8px;border:0;font-family:monospace;cursor:pointer;display:inline-block;'
+      );
+      schemaNameInput.textContent = controlName;
       schemaNameInput.title = 'Click to copy';
       schemaNameInput.addEventListener('click', () => {
         navigator.clipboard.writeText(controlName).catch(() => Utility.copy(controlName));
@@ -428,7 +436,7 @@ export class Forms {
               a[2].value < b[2].value ? 1 : a[2].value === b[2].value ? (a[1].value > b[1].value ? 1 : -1) : -1
             )
           : results;
-        this.utility.messageExtension(results, 'workflows');
+        this.utility.messageExtension({ entityName, rows: results }, 'workflows');
       })
       .catch(() => {});
   }
@@ -461,7 +469,7 @@ export class Forms {
             keys.forEach((k) => {
               resultsArray.push({ cells: [k, r[k]] });
             });
-            this.utility.messageExtension(resultsArray, 'allFields');
+            this.utility.messageExtension({ entityName, rows: resultsArray }, 'allFields');
           });
         }
       });
@@ -480,7 +488,8 @@ export class Forms {
       .filter((x) => x.getControlType() === 'boolean' || x.getControlType() === 'optionset')
       //@ts-ignore
       .map((x) => ({ name: x.getName(), options: (<Xrm.Page.OptionSetAttribute>x.getAttribute()).getOptions() }));
-    this.utility.messageExtension(optionSets, 'optionsets');
+    const entityName = this.utility.Xrm.Page.data.entity.getEntityName();
+    this.utility.messageExtension({ entityName, rows: optionSets }, 'optionsets');
   }
 
   blurFields() {

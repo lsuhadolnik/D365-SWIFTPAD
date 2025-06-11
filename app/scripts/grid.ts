@@ -5,7 +5,29 @@ chrome.runtime.sendMessage(
     type: pref('Page'),
     category: 'Load',
   },
-  (rows) => {
+  (resp) => {
+    const data: any = (resp as any).data ?? resp;
+    const rows = data.rows ?? data;
+    const category = (resp as any).category ?? '';
+    const entityName = data.entityName as string | undefined;
+    const friendly =
+      category === 'allFields'
+        ? 'All Fields'
+        : category === 'quickFindFields'
+          ? 'Quick Find Fields'
+          : category === 'entityMetadata'
+            ? 'Entity Metadata'
+            : category === 'environment'
+              ? 'Environment'
+              : category === 'myRoles'
+                ? 'My Roles'
+                : category;
+    if (entityName && category) {
+      document.title = `SWIFTPAD - ${friendly} - ${entityName}`;
+      const header = document.getElementById('header');
+      if (header) header.textContent = `${friendly} for ${entityName}`;
+    }
+
     const virtualResults = document.createDocumentFragment();
     for (let i = 0; i < rows.length; i++) {
       if (i > 0) {

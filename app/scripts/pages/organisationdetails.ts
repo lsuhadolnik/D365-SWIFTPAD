@@ -6,6 +6,7 @@ chrome.runtime.sendMessage(
     category: 'Load',
   },
   function (response) {
+    document.title = 'SWIFTPAD - Organisation Settings';
     const rows = response
       .filter((x) => x.value)
       .map((x) => {

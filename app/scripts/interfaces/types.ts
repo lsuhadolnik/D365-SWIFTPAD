@@ -83,7 +83,8 @@ export type ExtensionMessageContent =
   | IImpersonateMessage
   | IImpersonationResponse
   | UserDetail[]
-  | string;
+  | string
+  | { entityName: string; rows: any[] };
 export interface IImpersonationResponse {
   users: UserDetail[];
   impersonateRequest: IImpersonateMessage;

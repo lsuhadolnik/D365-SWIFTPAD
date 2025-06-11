@@ -5,8 +5,16 @@ chrome.runtime.sendMessage(
     type: pref('Page'),
     category: 'Load',
   },
-  function (response) {
-    const rows = response
+  function (resp) {
+    const data: any = (resp as any).data ?? resp;
+    const rowsData = data.rows ?? data;
+    const entityName = data.entityName as string | undefined;
+    if (entityName) {
+      document.title = `SWIFTPAD - Option Sets - ${entityName}`;
+      const h = document.getElementById('header');
+      if (h) h.textContent = `Option Sets for ${entityName}`;
+    }
+    const rows = rowsData
       .map((r) => {
         const cells = `<td class="name">${r.name}</td>
                     <td>
@@ -22,7 +30,7 @@ chrome.runtime.sendMessage(
         return `<tr>${cells}</tr>`;
       })
       .join('');
-    if (response.length > 0) {
+    if (rowsData.length > 0) {
       document.getElementById('results').innerHTML = rows;
       new List('grid', {
         valueNames: ['name'],
