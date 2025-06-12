@@ -6,7 +6,11 @@
     <script src="/uclient/scripts/dummy.js"></script>
   </head>
   <body>
-    <div id="record-page" style="display: none">
+    <header style="background:#004585;color:#fff;padding:4px 8px;font-weight:bold">Dynamics 365</header>
+    <aside style="float:left;width:200px;height:calc(100vh - 40px);background:#eee"></aside>
+    <main id="content" style="margin-left:210px;padding:8px">
+      <div id="test-name" style="font-size:12px;color:#444;margin-bottom:4px"></div>
+      <div id="record-page" style="display: none">
       <h1>Account</h1>
       <form>
         <label>
@@ -18,8 +22,8 @@
           <input id="phone" value="123-456" />
         </label>
       </form>
-    </div>
-    <div id="grid-page" style="display: none">
+      </div>
+      <div id="grid-page" style="display: none">
       <table id="account-grid" border="1">
         <thead>
           <tr>
@@ -38,12 +42,15 @@
           </tr>
         </tbody>
       </table>
-    </div>
+      </div>
+    </main>
     <script>
       const params = new URLSearchParams(location.search);
       const dist = params.get('dist');
       const loader = params.get('loader');
       const page = params.get('page') || 'record';
+      const testName = params.get('test') || '';
+      document.getElementById('test-name').textContent = testName;
       const cmdsParam = params.get('cmds');
       let commandsData = null;
       if (cmdsParam) {
@@ -54,6 +61,7 @@
       document.getElementById(page + '-page').style.display = 'block';
       window.recordedMessages = [];
       window.fetchLog = [];
+      const syncStore: Record<string, any> = {};
       window.chrome = {
         runtime: {
           getURL: (p) => 'file://' + dist + '/' + p,
@@ -63,7 +71,28 @@
           },
         },
         storage: {
-          sync: { get: () => Promise.resolve({}), set: () => Promise.resolve() },
+          sync: {
+            get: (keys) => {
+              if (!keys) return Promise.resolve({ ...syncStore });
+              const arr = Array.isArray(keys) ? keys : [keys];
+              const out: Record<string, any> = {};
+              for (const k of arr) out[k] = syncStore[k];
+              return Promise.resolve(out);
+            },
+            set: (data) => {
+              Object.assign(syncStore, data);
+              return Promise.resolve();
+            },
+            clear: () => {
+              for (const k in syncStore) delete syncStore[k];
+              return Promise.resolve();
+            },
+            remove: (keys) => {
+              const arr = Array.isArray(keys) ? keys : [keys];
+              for (const k of arr) delete syncStore[k];
+              return Promise.resolve();
+            },
+          },
           local: {
             get: () => Promise.resolve({}),
             set: () => Promise.resolve(),
