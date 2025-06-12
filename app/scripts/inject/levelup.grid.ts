@@ -34,7 +34,7 @@ export class Grid {
           ).map((x) => x.getAttribute('attribute'));
         }
         quickFindFields.forEach((x) => resultsArray.push({ cells: [x] }));
-        this.utility.messageExtension(resultsArray, 'quickFindFields');
+        this.utility.messageExtension({ entityName, rows: resultsArray }, 'quickFindFields');
       });
     } else {
       alert('The current page is not a view');

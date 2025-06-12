@@ -35,6 +35,8 @@ export type MessageType =
   | 'instancePicker'
   | 'openAdmin'
   | 'openMakePowerApps'
+  | 'manageAppUsers'
+  | 'manageUsers'
   | 'reloadData'
   | 'autoReload'
   | 'openGrid'
@@ -81,7 +83,8 @@ export type ExtensionMessageContent =
   | IImpersonateMessage
   | IImpersonationResponse
   | UserDetail[]
-  | string;
+  | string
+  | { entityName: string; rows: any[] };
 export interface IImpersonationResponse {
   users: UserDetail[];
   impersonateRequest: IImpersonateMessage;

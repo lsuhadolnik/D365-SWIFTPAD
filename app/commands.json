@@ -174,11 +174,6 @@
     "title": "Enable Performance Center"
   },
   {
-    "id": "instancePicker",
-    "category": "Navigation",
-    "title": "Open Instance Picker"
-  },
-  {
     "id": "openGrid",
     "category": "Grid",
     "title": "Open Record List"
@@ -218,6 +213,16 @@
     "id": "openMakePowerApps",
     "category": "Navigation",
     "title": "Open make.powerapps.com"
+  },
+  {
+    "id": "manageAppUsers",
+    "category": "Navigation",
+    "title": "Manage Application Users"
+  },
+  {
+    "id": "manageUsers",
+    "category": "Navigation",
+    "title": "Manage Users"
   },
   {
     "id": "entityInfoSpotlight",

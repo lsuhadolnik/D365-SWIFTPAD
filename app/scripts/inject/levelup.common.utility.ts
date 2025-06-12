@@ -4,6 +4,7 @@ import {
   Category,
   IRetrieveCurrentOrganizationResponse,
 } from '../interfaces/types';
+import { pref } from '../prefix';
 
 export class Utility {
   private _is2016OrGreater: boolean;
@@ -114,19 +115,15 @@ export class Utility {
         }
         return c;
       })
-      .catch((err) => {
-        console.log(err);
-      });
+      .catch(() => {});
   }
 
   messageExtension(message: any[] | boolean | object, category: Category): void {
     const extensionMessage = {
-      type: 'Page',
+      type: pref('Page'),
       category: category,
       content: message,
     };
-
-    console.log('Levelup dispatching message', extensionMessage);
 
     const levelUpEvent = new CustomEvent('levelup', {
       detail: extensionMessage,
@@ -145,7 +142,7 @@ export class Utility {
 
   static enableExtension(isEnable: boolean): void {
     chrome.runtime.sendMessage({
-      type: 'Page',
+      type: pref('Page'),
       content: isEnable ? 'On' : 'Off',
       category: 'Extension',
     });

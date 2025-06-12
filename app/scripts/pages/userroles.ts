@@ -1,9 +1,14 @@
+import { pref } from '../prefix';
+
 chrome.runtime.sendMessage(
   {
-    type: 'Page',
+    type: pref('Page'),
     category: 'Load',
   },
-  function (rows) {
+  function (resp) {
+    const data: any = (resp as any).data ?? resp;
+    const rows = data.rows ?? data;
+    document.title = 'SWIFTPAD - User Roles';
     let rowsHtml = '';
     for (let i = 0; i < rows.length; i++) {
       if (i > 0)

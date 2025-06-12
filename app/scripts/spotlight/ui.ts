@@ -9,6 +9,7 @@ import { loadEntityMetadata } from './metadata';
 import { SpotlightState, initialState } from './state';
 import { showToast, debounce } from './utils';
 import { requestRoles, requestEntityMetadata } from './controller';
+import { pref, strip } from '../prefix';
 
 // Icon mappings used when rendering the command list
 const commandIcons: Record<string, string> = {
@@ -17,6 +18,8 @@ const commandIcons: Record<string, string> = {
   impersonationResetSpotlight: 'person_off',
   openAdmin: 'open_in_new',
   openMakePowerApps: 'open_in_new',
+  manageAppUsers: 'open_in_new',
+  manageUsers: 'open_in_new',
   entityInfoSpotlight: 'info',
   reloadData: 'refresh',
   autoReload: 'autorenew',
@@ -134,29 +137,40 @@ async function openSpotlight(options?: { tip?: boolean }) {
   progress.id = 'dl-spotlight-progress';
   progress.innerHTML = '<div class="dl-spinner"></div><div class="dl-progress-text"></div>';
   const progressText = progress.querySelector<HTMLDivElement>('.dl-progress-text')!;
+  const tip = document.createElement('div');
+  tip.className = 'dl-tip';
+  tip.style.display = 'none';
   const sendSearch = debounce((q: string) => {
     progressText.textContent = 'Loading...';
     progress.style.display = 'block';
-    console.log('[ui.ts] sending search', q);
     chrome.runtime.sendMessage({
-      type: 'search',
+      type: pref('search'),
       category: 'Impersonation',
       content: { userName: q },
     });
   }, 100);
-  container.append(logo, pillWrap, input, list, infoPanel, progress);
+  container.append(logo, pillWrap, input, list, infoPanel, progress, tip);
   backdrop.append(favWrap, container);
   if (options?.tip) {
-    const tip = document.createElement('div');
     tip.textContent = 'Tip: Press Ctrl+Shift+P to open this window.';
-    tip.className = 'dl-tip';
-    container.append(tip);
+    tip.style.display = 'block';
   }
   backdrop.addEventListener('click', (e) => {
     if (e.target === backdrop) closeSpotlight();
   });
   document.body.append(backdrop);
   input.focus();
+  window.addEventListener('blur', () => {
+    let attempts = 0;
+    const id = setInterval(() => {
+      if (document.hasFocus()) {
+        input.focus();
+        if (++attempts > 5) clearInterval(id);
+      } else if (++attempts > 10) {
+        clearInterval(id);
+      }
+    }, 200);
+  });
   const stateObj: SpotlightState = initialState();
   input.value = stateObj.query;
   input.select();
@@ -177,7 +191,12 @@ async function openSpotlight(options?: { tip?: boolean }) {
     selectedEntity = '';
   }
 
-  if (state === Step.OpenRecordEntity || state === Step.OpenRecordId) {
+  if (
+    state === Step.OpenRecordEntity ||
+    state === Step.OpenRecordId ||
+    state === Step.OpenListEntity ||
+    state === Step.NewRecordEntity
+  ) {
     progressText.textContent = 'Loading metadata...';
     progress.style.display = 'block';
     metadata = await loadEntityMetadata();
@@ -328,11 +347,14 @@ async function openSpotlight(options?: { tip?: boolean }) {
 
   function render() {
     list.innerHTML = '';
-    infoPanel.style.display = 'none';
+    infoPanel.style.display =
+      state === Step.FetchXml || state === Step.EnvironmentInfoDisplay || state === Step.EntityInfoDisplay
+        ? 'block'
+        : 'none';
     list.style.display = '';
     if (state === Step.Commands) {
       renderCommands();
-    } else if (state === Step.OpenRecordEntity) {
+    } else if (state === Step.OpenRecordEntity || state === Step.OpenListEntity || state === Step.NewRecordEntity) {
       renderEntities();
     } else if (state === Step.OpenRecordId) {
       renderRecords();
@@ -384,7 +406,6 @@ async function openSpotlight(options?: { tip?: boolean }) {
   }
 
   function renderEntities() {
-    debugger;
     const queryEmpty = input.value.trim() === '';
     const currentEntity = queryEmpty ? currentEntityFromUrl() : null;
     if (currentEntity) {
@@ -396,6 +417,20 @@ async function openSpotlight(options?: { tip?: boolean }) {
         li.addEventListener('mouseenter', () => select(li));
         li.addEventListener('click', () => {
           selectedEntity = ent.logicalName;
+          if (state === Step.OpenListEntity) {
+            closeSpotlight();
+            openEntityList(ent.logicalName);
+            return;
+          }
+          if (state === Step.NewRecordEntity) {
+            closeSpotlight();
+            chrome.runtime.sendMessage({
+              type: pref('newRecord'),
+              category: 'Navigation',
+              content: ent.logicalName,
+            });
+            return;
+          }
           pills.push(ent.displayName);
           state = Step.OpenRecordId;
           input.value = '';
@@ -424,6 +459,20 @@ async function openSpotlight(options?: { tip?: boolean }) {
         li.addEventListener('mouseenter', () => select(li));
         li.addEventListener('click', () => {
           selectedEntity = ent.logicalName;
+          if (state === Step.OpenListEntity) {
+            closeSpotlight();
+            openEntityList(ent.logicalName);
+            return;
+          }
+          if (state === Step.NewRecordEntity) {
+            closeSpotlight();
+            chrome.runtime.sendMessage({
+              type: pref('newRecord'),
+              category: 'Navigation',
+              content: ent.logicalName,
+            });
+            return;
+          }
           pills.push(ent.displayName);
           state = Step.OpenRecordId;
           input.value = '';
@@ -441,7 +490,7 @@ async function openSpotlight(options?: { tip?: boolean }) {
         });
         list.append(li);
       });
-    if (state === Step.OpenRecordEntity) {
+    if (state === Step.OpenRecordEntity || state === Step.OpenListEntity || state === Step.NewRecordEntity) {
       const typed = input.value.trim();
       if (typed && !metadata.some((m) => m.logicalName.toLowerCase() === typed.toLowerCase())) {
         const li = document.createElement('li');
@@ -450,6 +499,20 @@ async function openSpotlight(options?: { tip?: boolean }) {
         li.addEventListener('mouseenter', () => select(li));
         li.addEventListener('click', () => {
           selectedEntity = typed;
+          if (state === Step.OpenListEntity) {
+            closeSpotlight();
+            openEntityList(typed);
+            return;
+          }
+          if (state === Step.NewRecordEntity) {
+            closeSpotlight();
+            chrome.runtime.sendMessage({
+              type: pref('newRecord'),
+              category: 'Navigation',
+              content: typed,
+            });
+            return;
+          }
           pills.push(typed);
           state = Step.OpenRecordId;
           input.value = '';
@@ -466,7 +529,6 @@ async function openSpotlight(options?: { tip?: boolean }) {
   }
 
   function renderRecords() {
-    debugger;
     (filtered as { id: string; name: string }[]).slice(0, 20).forEach((r) => {
       const li = document.createElement('li');
       li.textContent = `${r.name} (${r.id})`;
@@ -475,7 +537,7 @@ async function openSpotlight(options?: { tip?: boolean }) {
       li.addEventListener('click', () => {
         closeSpotlight();
         chrome.runtime.sendMessage({
-          type: 'openRecordQuick',
+          type: pref('openRecordQuick'),
           category: 'Navigation',
           content: { entity: selectedEntity, id: r.id },
         });
@@ -503,7 +565,7 @@ async function openSpotlight(options?: { tip?: boolean }) {
       li.addEventListener('click', () => {
         closeSpotlight();
         chrome.runtime.sendMessage({
-          type: 'Page',
+          type: pref('Page'),
           category: 'Impersonation',
           content: {
             impersonateRequest: {
@@ -528,7 +590,7 @@ async function openSpotlight(options?: { tip?: boolean }) {
       li.addEventListener('click', () => {
         closeSpotlight();
         chrome.runtime.sendMessage({
-          type: 'openRecordQuick',
+          type: pref('openRecordQuick'),
           category: 'Navigation',
           content: { entity: fetchEntity, id: r.id },
         });
@@ -541,7 +603,7 @@ async function openSpotlight(options?: { tip?: boolean }) {
     const q = input.value.trim();
     if (state === Step.Commands) {
       filtered = q ? commands.filter((c) => fuzzyMatch(q, c.title)) : commands;
-    } else if (state === Step.OpenRecordEntity) {
+    } else if (state === Step.OpenRecordEntity || state === Step.OpenListEntity || state === Step.NewRecordEntity) {
       const items = metadata.filter((m) => fuzzyMatch(q, m.displayName) || fuzzyMatch(q, m.logicalName));
       if (q) {
         const lower = q.toLowerCase();
@@ -603,6 +665,7 @@ async function openSpotlight(options?: { tip?: boolean }) {
       input.style.display = '';
       infoPanel.style.display = 'none';
       list.style.display = '';
+      tip.style.display = 'none';
       if (state === Step.OpenRecordId) {
         state = Step.OpenRecordEntity;
         input.placeholder = 'Search entity...';
@@ -626,12 +689,36 @@ async function openSpotlight(options?: { tip?: boolean }) {
     }
   });
 
+  function handleGlobalBackspace(ev: KeyboardEvent) {
+    if (ev.key === 'Backspace' && state === Step.EnvironmentInfoDisplay) {
+      ev.preventDefault();
+      pills.pop();
+      state = Step.Commands;
+      filtered = commands;
+      input.placeholder = 'Search commands...';
+      input.style.display = '';
+      infoPanel.style.display = 'none';
+      list.style.display = '';
+      tip.style.display = 'none';
+      renderPills();
+      render();
+    }
+  }
+  document.addEventListener('keydown', handleGlobalBackspace);
+  spotlightCleanup = () => {
+    document.removeEventListener('keydown', handleGlobalBackspace);
+    if (handleSpotlightMessage) {
+      window.removeEventListener('message', handleSpotlightMessage as EventListener);
+      handleSpotlightMessage = null;
+    }
+  };
+
   handleSpotlightMessage = function (rawMessage: any) {
     const message = rawMessage.data || rawMessage;
-    console.log('[ui.ts] received', message);
+    const type = strip(message.type);
 
     if (
-      message.type === 'Page' &&
+      type === 'Page' &&
       message.category === 'Impersonation-UserSearch' &&
       (state === Step.ImpersonateSearch || checkingImpersonation)
     ) {
@@ -652,7 +739,7 @@ async function openSpotlight(options?: { tip?: boolean }) {
         filtered = resp.users;
       }
       render();
-    } else if (message.type === 'Page' && message.category === 'Impersonation' && checkingImpersonation) {
+    } else if (type === 'Page' && message.category === 'Impersonation' && checkingImpersonation) {
       const resp = message.content as IImpersonationResponse;
       checkingImpersonation = false;
       progress.style.display = 'none';
@@ -660,7 +747,7 @@ async function openSpotlight(options?: { tip?: boolean }) {
       if (!resp.impersonateRequest.canImpersonate) {
         showToast('You do not have impersonation permissions');
       }
-    } else if (message.type === 'Page' && message.category === 'Impersonation' && state === Step.ImpersonateSearch) {
+    } else if (type === 'Page' && message.category === 'Impersonation' && state === Step.ImpersonateSearch) {
       const resp = message.content as IImpersonationResponse;
       if (!resp.impersonateRequest.canImpersonate) {
         progress.style.display = 'none';
@@ -673,6 +760,7 @@ async function openSpotlight(options?: { tip?: boolean }) {
   window.addEventListener('message', handleSpotlightMessage);
 
   async function executeCommand(cmd: Command) {
+    favWrap.style.display = 'none';
     if (cmd.id === 'openRecordSpotlight') {
       state = Step.OpenRecordEntity;
       pills.push('Open');
@@ -683,6 +771,38 @@ async function openSpotlight(options?: { tip?: boolean }) {
       filtered = metadata;
       input.placeholder = 'Search entity...';
       input.value = '';
+      tip.textContent = 'Not seeing the entity you need? Try refreshing the metadata';
+      tip.style.display = 'block';
+      renderPills();
+      render();
+      return;
+    } else if (cmd.id === 'openList') {
+      state = Step.OpenListEntity;
+      pills.push('List');
+      progressText.textContent = 'Loading metadata...';
+      progress.style.display = 'block';
+      metadata = await loadEntityMetadata();
+      progress.style.display = 'none';
+      filtered = metadata;
+      input.placeholder = 'Search entity...';
+      input.value = '';
+      tip.textContent = 'Not seeing the entity you need? Try refreshing the metadata';
+      tip.style.display = 'block';
+      renderPills();
+      render();
+      return;
+    } else if (cmd.id === 'newRecord') {
+      state = Step.NewRecordEntity;
+      pills.push('New');
+      progressText.textContent = 'Loading metadata...';
+      progress.style.display = 'block';
+      metadata = await loadEntityMetadata();
+      progress.style.display = 'none';
+      filtered = metadata;
+      input.placeholder = 'Search entity...';
+      input.value = '';
+      tip.textContent = 'Not seeing the entity you need? Try refreshing the metadata';
+      tip.style.display = 'block';
       renderPills();
       render();
       return;
@@ -726,13 +846,13 @@ async function openSpotlight(options?: { tip?: boolean }) {
           filtered = fetchResults;
           progress.style.display = 'none';
           list.style.display = '';
-          infoPanel.style.display = 'none';
-          input.style.display = '';
-          input.value = '';
+          infoPanel.style.display = 'block';
+          input.style.display = 'none';
           state = Step.FetchXml;
           render();
         }
       });
+      tip.style.display = 'none';
       return;
     } else if (cmd.id === 'entityInfoSpotlight') {
       state = Step.EntityInfoDisplay;
@@ -894,16 +1014,15 @@ async function openSpotlight(options?: { tip?: boolean }) {
       checkingImpersonation = true;
       progressText.textContent = 'Checking permissions...';
       progress.style.display = 'block';
-      console.log('[ui.ts] requesting initial users');
       chrome.runtime.sendMessage({
-        type: 'search',
+        type: pref('search'),
         category: 'Impersonation',
         content: { userName: '' },
       });
       return;
     } else if (cmd.id === 'impersonationResetSpotlight') {
       closeSpotlight();
-      chrome.runtime.sendMessage({ type: 'reset', category: 'Impersonation' });
+      chrome.runtime.sendMessage({ type: pref('reset'), category: 'Impersonation' });
       return;
     } else if (cmd.id === 'refreshEntityMetadata') {
       progressText.textContent = 'Loading metadata...';
@@ -914,8 +1033,9 @@ async function openSpotlight(options?: { tip?: boolean }) {
       render();
       return;
     }
+    tip.style.display = 'none';
     closeSpotlight();
-    chrome.runtime.sendMessage({ type: cmd.id, category: cmd.category });
+    chrome.runtime.sendMessage({ type: pref(cmd.id), category: cmd.category });
   }
 
   render();
@@ -925,6 +1045,7 @@ async function openSpotlight(options?: { tip?: boolean }) {
       window.removeEventListener('message', handleSpotlightMessage as EventListener);
       handleSpotlightMessage = null;
     }
+    document.removeEventListener('keydown', handleGlobalBackspace);
   };
 }
 

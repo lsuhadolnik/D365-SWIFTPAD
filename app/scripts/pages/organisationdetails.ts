@@ -1,9 +1,12 @@
+import { pref } from '../prefix';
+
 chrome.runtime.sendMessage(
   {
-    type: 'Page',
+    type: pref('Page'),
     category: 'Load',
   },
   function (response) {
+    document.title = 'SWIFTPAD - Organisation Settings';
     const rows = response
       .filter((x) => x.value)
       .map((x) => {
