@@ -160,6 +160,17 @@ async function openSpotlight(options?: { tip?: boolean }) {
   });
   document.body.append(backdrop);
   input.focus();
+  window.addEventListener('blur', () => {
+    let attempts = 0;
+    const id = setInterval(() => {
+      if (document.hasFocus()) {
+        input.focus();
+        if (++attempts > 5) clearInterval(id);
+      } else if (++attempts > 10) {
+        clearInterval(id);
+      }
+    }, 200);
+  });
   const stateObj: SpotlightState = initialState();
   input.value = stateObj.query;
   input.select();
@@ -336,7 +347,10 @@ async function openSpotlight(options?: { tip?: boolean }) {
 
   function render() {
     list.innerHTML = '';
-    infoPanel.style.display = 'none';
+    infoPanel.style.display =
+      state === Step.FetchXml || state === Step.EnvironmentInfoDisplay || state === Step.EntityInfoDisplay
+        ? 'block'
+        : 'none';
     list.style.display = '';
     if (state === Step.Commands) {
       renderCommands();
@@ -589,7 +603,7 @@ async function openSpotlight(options?: { tip?: boolean }) {
     const q = input.value.trim();
     if (state === Step.Commands) {
       filtered = q ? commands.filter((c) => fuzzyMatch(q, c.title)) : commands;
-    } else if (state === Step.OpenRecordEntity) {
+    } else if (state === Step.OpenRecordEntity || state === Step.OpenListEntity || state === Step.NewRecordEntity) {
       const items = metadata.filter((m) => fuzzyMatch(q, m.displayName) || fuzzyMatch(q, m.logicalName));
       if (q) {
         const lower = q.toLowerCase();
