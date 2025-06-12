@@ -6,11 +6,45 @@
     <script src="/uclient/scripts/dummy.js"></script>
   </head>
   <body>
+    <div id="record-page" style="display: none">
+      <h1>Account</h1>
+      <form>
+        <label>
+          Name
+          <input id="name" value="Acme Inc" />
+        </label>
+        <label>
+          Phone
+          <input id="phone" value="123-456" />
+        </label>
+      </form>
+    </div>
+    <div id="grid-page" style="display: none">
+      <table id="account-grid" border="1">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Phone</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Acme Inc</td>
+            <td>123-456</td>
+          </tr>
+          <tr>
+            <td>Contoso</td>
+            <td>987-654</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
     <script>
       const params = new URLSearchParams(location.search);
       const dist = params.get('dist');
       const loader = params.get('loader');
       const page = params.get('page') || 'record';
+      document.getElementById(page + '-page').style.display = 'block';
       window.recordedMessages = [];
       window.fetchLog = [];
       window.chrome = {

@@ -14,8 +14,8 @@
     "postbuild": "rimraf app/scripts/levelup.extension.js app/scripts/grid.js app/scripts/organisationdetails.js app/scripts/processes.js app/scripts/userroles.js app/scripts/optionsets.js",
     "lint": "eslint \"app/**/*.ts\"",
     "pack": "npm run build",
-    "pretest": "node scripts/playwright-install.mjs",
-    "test": "playwright test"
+    "pretest": "npm run build && node scripts/playwright-install.mjs",
+    "test": "xvfb-run -a playwright test"
   },
   "devDependencies": {
     "@crxjs/vite-plugin": "^2.0.0-beta.33",
