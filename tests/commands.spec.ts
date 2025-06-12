@@ -11,6 +11,8 @@ const manifest = JSON.parse(fs.readFileSync(path.join(distPath, 'manifest.json')
 const loader = manifest.content_scripts[0].js[0];
 const harness = path.resolve(__dirname, 'harness.html');
 
+const gridCommands = new Set(['openGrid', 'quickFindFields', 'blurView', 'resetViewBlur', 'sendToFXB']);
+
 const special = new Set([
   'openRecordSpotlight',
   'openList',
@@ -28,7 +30,11 @@ const special = new Set([
 test.describe('Commands', () => {
   for (const cmd of commands as { id: string; title: string; category: string }[]) {
     test(cmd.id, async ({ page }) => {
-      const url = 'file://' + harness + `?dist=${encodeURIComponent(distPath)}&loader=${encodeURIComponent(loader)}`;
+      const targetPage = gridCommands.has(cmd.id) ? 'grid' : 'record';
+      const url =
+        'file://' +
+        harness +
+        `?dist=${encodeURIComponent(distPath)}&loader=${encodeURIComponent(loader)}&page=${targetPage}`;
       await page.goto(url);
       await page.waitForFunction(() => (window as any).pref !== undefined);
       await page.evaluate(() => window.dispatchEvent(new CustomEvent('openSpotlight')));

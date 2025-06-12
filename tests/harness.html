@@ -3,12 +3,14 @@
   <head>
     <meta charset="utf-8" />
     <title>Harness</title>
+    <script src="/uclient/scripts/dummy.js"></script>
   </head>
   <body>
     <script>
       const params = new URLSearchParams(location.search);
       const dist = params.get('dist');
       const loader = params.get('loader');
+      const page = params.get('page') || 'record';
       window.recordedMessages = [];
       window.fetchLog = [];
       window.chrome = {
@@ -39,7 +41,6 @@
         scripting: { executeScript: () => {} },
         declarativeNetRequest: { updateDynamicRules: (r, cb) => cb && cb(), getDynamicRules: (cb) => cb([]) },
       };
-      const originalFetch = window.fetch.bind(window);
       window.fetch = (input, init) => {
         const url = typeof input === 'string' ? input : input.url;
         window.fetchLog.push(url);
@@ -67,14 +68,30 @@
         }
         return Promise.resolve(new Response(JSON.stringify({ value: [] })));
       };
-      window.Xrm = {
-        Page: {
-          context: { getClientUrl: () => location.origin, getVersion: () => '9.2', getUserId: () => '{user}' },
-          data: { entity: { getEntityName: () => 'account', getId: () => '{id}' } },
-          ui: { tabs: { forEach: () => {}, get: () => ({}) }, controls: { forEach: () => {} } },
-        },
-        Utility: { getGlobalContext: () => ({ getCurrentAppUrl: () => '' }) },
-      };
+      if (page === 'record') {
+        window.Xrm = {
+          Page: {
+            context: {
+              getClientUrl: () => location.origin,
+              getVersion: () => '9.2',
+              getUserId: () => '{user}',
+            },
+            data: { entity: { getEntityName: () => 'account', getId: () => '{id}' } },
+            ui: { tabs: { forEach: () => {}, get: () => ({}) }, controls: { forEach: () => {} } },
+          },
+          Utility: { getGlobalContext: () => ({ getCurrentAppUrl: () => '' }) },
+        };
+      } else {
+        window.Xrm = {
+          Page: {
+            context: {
+              getClientUrl: () => location.origin,
+              getVersion: () => '9.2',
+              getUserId: () => '{user}',
+            },
+          },
+        };
+      }
     </script>
     <script type="module" id="loaderScript"></script>
     <script>
