@@ -61,7 +61,7 @@ function saveFavorites() {
  * Initialize keyboard shortcut (Ctrl+Shift+P) to open spotlight
  */
 export function initSpotlight() {
-  if (!/\.crm.*\.dynamics\.com$/.test(window.location.hostname)) return;
+  if (!/\.crm.*\.dynamics\.com$/.test(window.location.hostname) && !(window as any).HARNESS) return;
   document.addEventListener('keydown', async (e) => {
     if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.code === 'KeyP') {
       e.preventDefault();

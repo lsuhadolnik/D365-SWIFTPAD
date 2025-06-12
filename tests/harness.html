@@ -61,7 +61,8 @@
       document.getElementById(page + '-page').style.display = 'block';
       window.recordedMessages = [];
       window.fetchLog = [];
-      const syncStore: Record<string, any> = {};
+      window.HARNESS = true;
+      const syncStore = {};
       window.chrome = {
         runtime: {
           getURL: (p) => 'file://' + dist + '/' + p,
@@ -75,7 +76,7 @@
             get: (keys) => {
               if (!keys) return Promise.resolve({ ...syncStore });
               const arr = Array.isArray(keys) ? keys : [keys];
-              const out: Record<string, any> = {};
+              const out = {};
               for (const k of arr) out[k] = syncStore[k];
               return Promise.resolve(out);
             },

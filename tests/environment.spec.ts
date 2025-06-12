@@ -4,6 +4,7 @@ import { harnessUrl } from './utils';
 test('Environment details copy', async ({ page }) => {
   const url = harnessUrl({ page: 'record', test: 'env details' });
   await page.goto(url);
+  await page.waitForFunction(() => (window as any).pref !== undefined);
   await page.evaluate(() => window.dispatchEvent(new CustomEvent('openSpotlight')));
   await page.fill('#dl-spotlight-input', 'Environment Details');
   await page.click('li[data-id="environmentDetails"]');

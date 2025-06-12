@@ -4,6 +4,7 @@ import { harnessUrl } from './utils';
 test('Quick open list and record', async ({ page }) => {
   const url = harnessUrl({ page: 'record', test: 'quick open' });
   await page.goto(url);
+  await page.waitForFunction(() => (window as any).pref !== undefined);
   await page.evaluate(() => window.dispatchEvent(new CustomEvent('openSpotlight')));
   await page.fill('#dl-spotlight-input', 'Quick open');
   await page.click('li[data-id="openRecordSpotlight"]');
@@ -23,6 +24,7 @@ test('Quick open list and record', async ({ page }) => {
 test('Quick open list last', async ({ page }) => {
   const url = harnessUrl({ page: 'record', test: 'quick open list' });
   await page.goto(url);
+  await page.waitForFunction(() => (window as any).pref !== undefined);
   await page.evaluate(() => window.dispatchEvent(new CustomEvent('openSpotlight')));
   await page.fill('#dl-spotlight-input', 'Open List');
   await page.click('li[data-id="openList"]');

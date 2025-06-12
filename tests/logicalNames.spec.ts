@@ -4,6 +4,7 @@ import { harnessUrl } from './utils';
 test('Logical names and clearing', async ({ page }) => {
   const url = harnessUrl({ page: 'record', test: 'logical names' });
   await page.goto(url);
+  await page.waitForFunction(() => (window as any).pref !== undefined);
   await page.waitForSelector('#name');
   await page.evaluate(() => window.dispatchEvent(new CustomEvent('openSpotlight')));
   await page.fill('#dl-spotlight-input', 'Logical Names');
