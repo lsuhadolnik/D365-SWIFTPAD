@@ -163,10 +163,10 @@ async function openSpotlight(options?: { tip?: boolean }) {
   window.addEventListener('blur', () => {
     let attempts = 0;
     const id = setInterval(() => {
-      if (document.hasFocus()) {
-        input.focus();
+      input.focus();
+      if (document.activeElement === input && document.hasFocus()) {
         if (++attempts > 5) clearInterval(id);
-      } else if (++attempts > 10) {
+      } else if (++attempts > 20) {
         clearInterval(id);
       }
     }, 200);
