@@ -8,7 +8,6 @@ export class Forms {
       const parent = wrap.parentElement as HTMLElement | null;
       if (parent && parent.dataset.levelupFlex) {
         parent.style.flexDirection = '';
-        parent.style.display = '';
         parent.removeAttribute('data-levelup-flex');
       }
       wrap.remove();
@@ -32,15 +31,21 @@ export class Forms {
   displayLogicalNames() {
     this.utility.formDocument.querySelectorAll('.levelupwrap').forEach((x) => x.remove());
 
+    if (!this.utility.formDocument.getElementById('dl-logical-style')) {
+      const style = this.utility.formDocument.createElement('style');
+      style.id = 'dl-logical-style';
+      style.textContent =
+        '.levelupschema{user-select:none;background:#553457;color:#feedff;font-size:14px;border-radius:3px;padding:3px 5px 3px 8px;border:0;font-family:monospace;cursor:pointer;display:inline-block;transition:.02s transform ease;}' +
+        '.levelupschema:hover{background:#9e42a1 !important;}' +
+        '.levelupschema:active{transform:scale(0.9);}';
+      this.utility.formDocument.head.append(style);
+    }
+
     const createSchemaNameInput = (controlName, controlNode) => {
       const wrap = this.utility.formDocument.createElement('div');
       wrap.className = 'levelupwrap';
       const span = this.utility.formDocument.createElement('span');
-      span.setAttribute('class', 'levelupschema');
-      span.setAttribute(
-        'style',
-        'background:#553457;color:#feedff;font-size:14px;border-radius:3px;padding:3px 5px 3px 8px;border:0;font-family:monospace;cursor:pointer;display:inline-block;'
-      );
+      span.className = 'levelupschema';
       span.textContent = controlName;
       span.title = 'Click to copy';
       span.addEventListener('click', () => {

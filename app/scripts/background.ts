@@ -160,7 +160,7 @@ chrome.runtime.onMessage.addListener(async function (
     chrome.storage.local.clear();
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
     if (tab) chrome.tabs.reload(tab.id, { bypassCache: true });
-  } else if (type === 'impersonation' || type === 'search' || type === 'openRecordQuick') {
+  } else if (type === 'impersonation' || type === 'search' || type === 'openRecordQuick' || type === 'newRecord') {
     const data = <IImpersonateMessage | { entity: string; id: string }>message.content,
       [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
     if (!tab) return;
