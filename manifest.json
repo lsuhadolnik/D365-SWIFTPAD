@@ -29,7 +29,7 @@
         "app/commands.json",
         "app/images/lp_ll.png",
         "app/styles/spotlight.css",
-        "app/libraries/list.es.js"
+        "app/libraries/list.min.js"
       ],
       "matches": ["<all_urls>"]
     }
