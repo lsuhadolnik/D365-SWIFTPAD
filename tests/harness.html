@@ -62,12 +62,13 @@
       window.recordedMessages = [];
       window.fetchLog = [];
       window.HARNESS = true;
-      const syncStore = {};
+      const syncStore = JSON.parse(localStorage.getItem('syncStore') || '{}');
       window.chrome = {
         runtime: {
           getURL: (p) => 'file://' + dist + '/' + p,
           sendMessage: (msg, cb) => {
             window.recordedMessages.push(msg);
+            window.postMessage(msg, '*');
             if (cb) cb();
           },
         },
@@ -82,15 +83,18 @@
             },
             set: (data) => {
               Object.assign(syncStore, data);
+              localStorage.setItem('syncStore', JSON.stringify(syncStore));
               return Promise.resolve();
             },
             clear: () => {
               for (const k in syncStore) delete syncStore[k];
+              localStorage.removeItem('syncStore');
               return Promise.resolve();
             },
             remove: (keys) => {
               const arr = Array.isArray(keys) ? keys : [keys];
               for (const k of arr) delete syncStore[k];
+              localStorage.setItem('syncStore', JSON.stringify(syncStore));
               return Promise.resolve();
             },
           },
@@ -143,20 +147,69 @@
             )
           );
         }
+        if (url.includes('/api/data/')) {
+          return Promise.resolve(
+            new Response(
+              JSON.stringify({
+                value: [
+                  {
+                    accountid: '00000000-0000-0000-0000-000000000001',
+                    name: 'Acme Inc',
+                  },
+                ],
+              })
+            )
+          );
+        }
         return origFetch(input, init);
       };
       if (page === 'record') {
+        const controls = [
+          {
+            getName: () => 'name',
+            getAttribute: () => ({ getName: () => 'name' }),
+            getVisible: () => true,
+          },
+          {
+            getName: () => 'phone',
+            getAttribute: () => ({ getName: () => 'phone' }),
+            getVisible: () => true,
+          },
+        ];
+        const sections = [
+          { getName: () => 'info', getVisible: () => true },
+        ];
+        const tabs = [
+          {
+            getName: () => 'general',
+            getVisible: () => true,
+            sections: { forEach: (cb) => sections.forEach(cb) },
+            setDisplayState: () => {},
+            setFocus: () => {},
+          },
+        ];
         window.Xrm = {
           Page: {
             context: {
               getClientUrl: () => location.origin,
               getVersion: () => '9.2',
               getUserId: () => '{user}',
+              getOrgUniqueName: () => 'org',
+              getQueryStringParameters: () => ({ etc: 1 }),
             },
             data: { entity: { getEntityName: () => 'account', getId: () => '{id}' } },
-            ui: { tabs: { forEach: () => {}, get: () => ({}) }, controls: { forEach: () => {} } },
+            ui: {
+              tabs: {
+                forEach: (cb) => tabs.forEach((t) => cb(t)),
+                get: () => ({})
+              },
+              controls: {
+                forEach: (cb) => controls.forEach((c) => cb(c)),
+              },
+            },
           },
           Utility: { getGlobalContext: () => ({ getCurrentAppUrl: () => '' }) },
+          Internal: { isUci: () => true },
         };
       } else {
         window.Xrm = {
@@ -167,6 +220,7 @@
               getUserId: () => '{user}',
             },
           },
+          Internal: { isUci: () => true },
         };
       }
     </script>

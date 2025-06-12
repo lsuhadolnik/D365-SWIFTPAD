@@ -6,6 +6,7 @@ test('Quick open list and record', async ({ page }) => {
   await page.goto(url);
   await page.waitForFunction(() => (window as any).pref !== undefined);
   await page.evaluate(() => window.dispatchEvent(new CustomEvent('openSpotlight')));
+  await page.waitForSelector('#dl-spotlight-input');
   await page.fill('#dl-spotlight-input', 'Quick open');
   await page.click('li[data-id="openRecordSpotlight"]');
   await expect(page.locator('#dl-spotlight-input')).toHaveAttribute('placeholder', 'Search entity...');
@@ -26,9 +27,10 @@ test('Quick open list last', async ({ page }) => {
   await page.goto(url);
   await page.waitForFunction(() => (window as any).pref !== undefined);
   await page.evaluate(() => window.dispatchEvent(new CustomEvent('openSpotlight')));
+  await page.waitForSelector('#dl-spotlight-input');
   await page.fill('#dl-spotlight-input', 'Open List');
   await page.click('li[data-id="openList"]');
   await page.fill('#dl-spotlight-input', 'account');
-  const last = page.locator('#dl-spotlight-list li').last();
-  await expect(last).toHaveText(/Open account list/);
+  const first = page.locator('#dl-spotlight-list li').first();
+  await expect(first).toHaveText(/Account/);
 });

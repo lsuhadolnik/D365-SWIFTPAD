@@ -7,6 +7,7 @@ test('Logical names and clearing', async ({ page }) => {
   await page.waitForFunction(() => (window as any).pref !== undefined);
   await page.waitForSelector('#name');
   await page.evaluate(() => window.dispatchEvent(new CustomEvent('openSpotlight')));
+  await page.waitForSelector('#dl-spotlight-input');
   await page.fill('#dl-spotlight-input', 'Logical Names');
   await page.click('li[data-id="displayLogicalNames"]');
   await expect(page.locator('.levelupschema').first()).toBeVisible();

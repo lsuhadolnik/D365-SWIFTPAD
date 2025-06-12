@@ -6,13 +6,16 @@ test('Favorites add and persist', async ({ page }) => {
   await page.goto(url);
   await page.waitForFunction(() => (window as any).pref !== undefined);
   await page.evaluate(() => window.dispatchEvent(new CustomEvent('openSpotlight')));
+  await page.waitForSelector('#dl-spotlight-input');
   await page.fill('#dl-spotlight-input', 'Logical Names');
   const star = page.locator('li[data-id="displayLogicalNames"] .dl-star');
   await star.click();
   await page.keyboard.press('Escape');
   await page.evaluate(() => window.dispatchEvent(new CustomEvent('openSpotlight')));
+  await page.waitForSelector('#dl-spotlight-input');
   await expect(page.locator('#dl-spotlight-favs .dl-fav')).toHaveCount(1);
   await page.reload();
   await page.evaluate(() => window.dispatchEvent(new CustomEvent('openSpotlight')));
+  await page.waitForSelector('#dl-spotlight-input');
   await expect(page.locator('#dl-spotlight-favs .dl-fav')).toHaveCount(1);
 });

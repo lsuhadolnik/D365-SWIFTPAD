@@ -6,6 +6,7 @@ test('Auto reload toast appears and closes', async ({ page }) => {
   await page.goto(url);
   await page.waitForFunction(() => (window as any).pref !== undefined);
   await page.evaluate(() => window.dispatchEvent(new CustomEvent('openSpotlight')));
+  await page.waitForSelector('#dl-spotlight-input');
   await page.fill('#dl-spotlight-input', 'Auto Reload');
   await page.click('li[data-id="autoReload"]');
   await expect(page.locator('#dl-auto-reload-toast')).toBeVisible();

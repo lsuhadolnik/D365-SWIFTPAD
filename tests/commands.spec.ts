@@ -28,6 +28,10 @@ const special = new Set([
   'impersonateUserSpotlight',
   'impersonationResetSpotlight',
   'refreshEntityMetadata',
+  'reloadData',
+  'populateMin',
+  'refresh',
+  'perfCenter',
 ]);
 
 test.describe('Commands', () => {

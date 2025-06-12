@@ -6,9 +6,11 @@ test('Environment details copy', async ({ page }) => {
   await page.goto(url);
   await page.waitForFunction(() => (window as any).pref !== undefined);
   await page.evaluate(() => window.dispatchEvent(new CustomEvent('openSpotlight')));
+  await page.waitForSelector('#dl-spotlight-input');
   await page.fill('#dl-spotlight-input', 'Environment Details');
   await page.click('li[data-id="environmentDetails"]');
-  await expect(page.locator('#dl-spotlight-info .dl-copy')).toBeVisible();
+  const copy = page.locator('#dl-spotlight-info .dl-copy').first();
+  await expect(copy).toBeVisible();
   await page.evaluate(() => {
     (window as any).copied = '';
     navigator.clipboard.writeText = (t: string) => {
@@ -16,7 +18,7 @@ test('Environment details copy', async ({ page }) => {
       return Promise.resolve();
     };
   });
-  await page.click('#dl-spotlight-info .dl-copy');
+  await copy.click();
   const c = await page.evaluate(() => (window as any).copied);
   expect(c).not.toBe('');
 });
