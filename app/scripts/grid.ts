@@ -55,5 +55,27 @@ chrome.runtime.sendMessage(
       valueNames: ['name', 'display', 'value'],
     });
     list.sort('name');
+
+    const headerCells = document.querySelectorAll<HTMLTableCellElement>('#tableheader td');
+    headerCells.forEach((cell, idx) => {
+      const key = idx === 0 ? 'name' : idx === 1 ? 'display' : 'value';
+      cell.style.cursor = 'pointer';
+      cell.addEventListener('click', () => list.sort(key));
+    });
+
+    const toggle = document.getElementById('toggle-display') as HTMLInputElement | null;
+    const updateDisplay = () => {
+      const display = toggle?.checked ?? true;
+      document.querySelectorAll<HTMLTableCellElement>('#results td.display').forEach((td) => {
+        td.style.display = display ? '' : 'none';
+      });
+      document.querySelectorAll<HTMLTableCellElement>('#tableheader td:nth-child(2)').forEach((th) => {
+        th.style.display = display ? '' : 'none';
+      });
+    };
+    if (toggle) {
+      toggle.addEventListener('change', updateDisplay);
+      updateDisplay();
+    }
   }
 );
