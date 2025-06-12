@@ -22,6 +22,7 @@ export default defineConfig({
         processesScript: resolve(__dirname, 'app/scripts/processes.js'),
         userrolesScript: resolve(__dirname, 'app/scripts/userroles.js'),
         optionsetsScript: resolve(__dirname, 'app/scripts/optionsets.js'),
+        listLib: resolve(__dirname, 'app/libraries/list.es.js'),
       },
       output: {
         entryFileNames: (chunk) => {
@@ -31,6 +32,7 @@ export default defineConfig({
             processesScript: 'app/scripts/processes.js',
             userrolesScript: 'app/scripts/userroles.js',
             optionsetsScript: 'app/scripts/optionsets.js',
+            listLib: 'app/libraries/list.es.js',
           };
           return mapping[chunk.name] || 'assets/[name]-[hash].js';
         },

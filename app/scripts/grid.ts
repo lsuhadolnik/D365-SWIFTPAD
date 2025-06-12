@@ -32,9 +32,9 @@ chrome.runtime.sendMessage(
     for (let i = 0; i < rows.length; i++) {
       if (i > 0) {
         const row = document.createElement('tr');
-        rows[i].cells.forEach((x, i) => {
+        rows[i].cells.forEach((x, idx) => {
           const cell = document.createElement('td');
-          cell.className = i % 2 === 0 ? 'name' : 'value';
+          cell.className = idx === 0 ? 'name' : idx === 1 ? 'display' : 'value';
           cell.innerText = x;
           row.appendChild(cell);
         });
@@ -51,8 +51,9 @@ chrome.runtime.sendMessage(
     }
     document.getElementById('results').appendChild(virtualResults);
     //@ts-ignore
-    new List('grid', {
-      valueNames: ['name', 'value'],
+    const list = new List('grid', {
+      valueNames: ['name', 'display', 'value'],
     });
+    list.sort('name');
   }
 );

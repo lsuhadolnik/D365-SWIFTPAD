@@ -4,7 +4,15 @@ export class Forms {
   constructor(private utility: Utility) {}
 
   clearLogicalNames() {
-    this.utility.formDocument.querySelectorAll('.levelupschema').forEach((x) => x.remove());
+    this.utility.formDocument.querySelectorAll('.levelupwrap').forEach((wrap) => {
+      const parent = wrap.parentElement as HTMLElement | null;
+      if (parent && parent.dataset.levelupFlex) {
+        parent.style.flexDirection = '';
+        parent.style.display = '';
+        parent.removeAttribute('data-levelup-flex');
+      }
+      wrap.remove();
+    });
   }
 
   entityMetadata() {
@@ -22,30 +30,34 @@ export class Forms {
   }
 
   displayLogicalNames() {
-    this.utility.formDocument.querySelectorAll('.levelupschema').forEach((x) => x.remove());
+    this.utility.formDocument.querySelectorAll('.levelupwrap').forEach((x) => x.remove());
 
     const createSchemaNameInput = (controlName, controlNode) => {
-      const schemaNameInput = this.utility.formDocument.createElement('div');
-      schemaNameInput.setAttribute('class', 'levelupschema');
-      schemaNameInput.setAttribute(
+      const wrap = this.utility.formDocument.createElement('div');
+      wrap.className = 'levelupwrap';
+      const span = this.utility.formDocument.createElement('span');
+      span.setAttribute('class', 'levelupschema');
+      span.setAttribute(
         'style',
-        'background:#9a499f;color:#feedff;font-size:14px;border-radius:3px;padding:3px 5px 3px 8px;border:0;font-family:monospace;cursor:pointer;display:inline-block;'
+        'background:#553457;color:#feedff;font-size:14px;border-radius:3px;padding:3px 5px 3px 8px;border:0;font-family:monospace;cursor:pointer;display:inline-block;'
       );
-      schemaNameInput.textContent = controlName;
-      schemaNameInput.title = 'Click to copy';
-      schemaNameInput.addEventListener('click', () => {
+      span.textContent = controlName;
+      span.title = 'Click to copy';
+      span.addEventListener('click', () => {
         navigator.clipboard
           .writeText(controlName)
           .catch(() => Utility.copy(controlName))
           .finally(() => this.showToast(`Copied ${controlName}`));
       });
+      wrap.append(span);
       if (controlNode && controlNode.parentNode) {
         const parent = controlNode.parentElement as HTMLElement;
-        if (parent) {
+        if (parent && parent.tagName === 'DIV') {
           parent.style.display = 'flex';
           parent.style.flexDirection = 'column';
+          parent.dataset.levelupFlex = '1';
         }
-        controlNode.parentNode.insertBefore(schemaNameInput, controlNode);
+        controlNode.parentNode.insertBefore(wrap, controlNode);
       }
     };
 
@@ -456,21 +468,27 @@ export class Forms {
 
   allFields() {
     const entityId = this.utility.Xrm.Page.data.entity.getId();
-    if (entityId) {
-      const entityName = this.utility.Xrm.Page.data.entity.getEntityName();
-      const resultsArray = [{ cells: ['Attribute Name', 'Value'] }];
-      this.utility.fetch(`EntityDefinitions(LogicalName='${entityName}')`, 'EntitySetName').then((entity) => {
-        if (entity && entity.EntitySetName) {
-          this.utility.fetch(entity.EntitySetName, null, null, entityId.substr(1, 36).toLowerCase()).then((r) => {
-            const keys = Object.keys(r);
-            keys.forEach((k) => {
-              resultsArray.push({ cells: [k, r[k]] });
-            });
-            this.utility.messageExtension({ entityName, rows: resultsArray }, 'allFields');
+    if (!entityId) return;
+    const entityName = this.utility.Xrm.Page.data.entity.getEntityName();
+    const resultsArray = [{ cells: ['Attribute Name', 'Display Name', 'Value'] }];
+    this.utility
+      .fetch(
+        `EntityDefinitions(LogicalName='${entityName}')?$select=EntitySetName&$expand=Attributes($select=LogicalName,DisplayName)`
+      )
+      .then((entity) => {
+        if (!entity || !entity.EntitySetName) return;
+        const nameMap: Record<string, string> = {};
+        (entity.Attributes || []).forEach((a: any) => {
+          nameMap[a.LogicalName] = a.DisplayName?.UserLocalizedLabel?.Label || '';
+        });
+        this.utility.fetch(entity.EntitySetName, null, null, entityId.substr(1, 36).toLowerCase()).then((r) => {
+          const keys = Object.keys(r);
+          keys.forEach((k) => {
+            resultsArray.push({ cells: [k, nameMap[k] || '', r[k]] });
           });
-        }
+          this.utility.messageExtension({ entityName, rows: resultsArray }, 'allFields');
+        });
       });
-    }
   }
 
   toggleTabs() {
@@ -484,7 +502,11 @@ export class Forms {
     const optionSets = this.utility.Xrm.Page.getControl()
       .filter((x) => x.getControlType() === 'boolean' || x.getControlType() === 'optionset')
       //@ts-ignore
-      .map((x) => ({ name: x.getName(), options: (<Xrm.Page.OptionSetAttribute>x.getAttribute()).getOptions() }));
+      .map((x) => ({
+        name: x.getName(),
+        displayName: x.getLabel(),
+        options: (<Xrm.Page.OptionSetAttribute>x.getAttribute()).getOptions(),
+      }));
     const entityName = this.utility.Xrm.Page.data.entity.getEntityName();
     this.utility.messageExtension({ entityName, rows: optionSets }, 'optionsets');
   }

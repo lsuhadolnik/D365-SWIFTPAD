@@ -24,12 +24,8 @@ export class Navigation {
   }
 
   newRecord(entityName?: string) {
-    if (!entityName) {
-      entityName = prompt('Entity?', '') || '';
-    }
-    if (entityName) {
-      window.open(`${this.utility.clientUrlForParams}etn=${entityName}&newWindow=true&pagetype=entityrecord`, '_blank');
-    }
+    if (!entityName) return;
+    window.open(`${this.utility.clientUrlForParams}etn=${entityName}&newWindow=true&pagetype=entityrecord`, '_blank');
   }
 
   openSecurity() {

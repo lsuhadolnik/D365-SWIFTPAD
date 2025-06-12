@@ -16,7 +16,7 @@ chrome.runtime.sendMessage(
     }
     const rows = rowsData
       .map((r) => {
-        const cells = `<td class="name">${r.name}</td>
+        const cells = `<td class="name">${r.name}</td><td class="display">${r.displayName}</td>
                     <td>
                     <table>
                     <thead>
@@ -32,9 +32,10 @@ chrome.runtime.sendMessage(
       .join('');
     if (rowsData.length > 0) {
       document.getElementById('results').innerHTML = rows;
-      new List('grid', {
-        valueNames: ['name'],
+      const list = new List('grid', {
+        valueNames: ['name', 'display'],
       });
+      list.sort('name');
     }
   }
 );

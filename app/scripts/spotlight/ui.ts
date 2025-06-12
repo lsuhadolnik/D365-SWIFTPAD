@@ -137,6 +137,9 @@ async function openSpotlight(options?: { tip?: boolean }) {
   progress.id = 'dl-spotlight-progress';
   progress.innerHTML = '<div class="dl-spinner"></div><div class="dl-progress-text"></div>';
   const progressText = progress.querySelector<HTMLDivElement>('.dl-progress-text')!;
+  const tip = document.createElement('div');
+  tip.className = 'dl-tip';
+  tip.style.display = 'none';
   const sendSearch = debounce((q: string) => {
     progressText.textContent = 'Loading...';
     progress.style.display = 'block';
@@ -146,13 +149,11 @@ async function openSpotlight(options?: { tip?: boolean }) {
       content: { userName: q },
     });
   }, 100);
-  container.append(logo, pillWrap, input, list, infoPanel, progress);
+  container.append(logo, pillWrap, input, list, infoPanel, progress, tip);
   backdrop.append(favWrap, container);
   if (options?.tip) {
-    const tip = document.createElement('div');
     tip.textContent = 'Tip: Press Ctrl+Shift+P to open this window.';
-    tip.className = 'dl-tip';
-    container.append(tip);
+    tip.style.display = 'block';
   }
   backdrop.addEventListener('click', (e) => {
     if (e.target === backdrop) closeSpotlight();
@@ -650,6 +651,7 @@ async function openSpotlight(options?: { tip?: boolean }) {
       input.style.display = '';
       infoPanel.style.display = 'none';
       list.style.display = '';
+      tip.style.display = 'none';
       if (state === Step.OpenRecordId) {
         state = Step.OpenRecordEntity;
         input.placeholder = 'Search entity...';
@@ -672,6 +674,30 @@ async function openSpotlight(options?: { tip?: boolean }) {
       }
     }
   });
+
+  function handleGlobalBackspace(ev: KeyboardEvent) {
+    if (ev.key === 'Backspace' && state === Step.EnvironmentInfoDisplay) {
+      ev.preventDefault();
+      pills.pop();
+      state = Step.Commands;
+      filtered = commands;
+      input.placeholder = 'Search commands...';
+      input.style.display = '';
+      infoPanel.style.display = 'none';
+      list.style.display = '';
+      tip.style.display = 'none';
+      renderPills();
+      render();
+    }
+  }
+  document.addEventListener('keydown', handleGlobalBackspace);
+  spotlightCleanup = () => {
+    document.removeEventListener('keydown', handleGlobalBackspace);
+    if (handleSpotlightMessage) {
+      window.removeEventListener('message', handleSpotlightMessage as EventListener);
+      handleSpotlightMessage = null;
+    }
+  };
 
   handleSpotlightMessage = function (rawMessage: any) {
     const message = rawMessage.data || rawMessage;
@@ -720,6 +746,7 @@ async function openSpotlight(options?: { tip?: boolean }) {
   window.addEventListener('message', handleSpotlightMessage);
 
   async function executeCommand(cmd: Command) {
+    favWrap.style.display = 'none';
     if (cmd.id === 'openRecordSpotlight') {
       state = Step.OpenRecordEntity;
       pills.push('Open');
@@ -730,6 +757,8 @@ async function openSpotlight(options?: { tip?: boolean }) {
       filtered = metadata;
       input.placeholder = 'Search entity...';
       input.value = '';
+      tip.textContent = 'Not seeing the entity you need? Try refreshing the metadata';
+      tip.style.display = 'block';
       renderPills();
       render();
       return;
@@ -743,6 +772,8 @@ async function openSpotlight(options?: { tip?: boolean }) {
       filtered = metadata;
       input.placeholder = 'Search entity...';
       input.value = '';
+      tip.textContent = 'Not seeing the entity you need? Try refreshing the metadata';
+      tip.style.display = 'block';
       renderPills();
       render();
       return;
@@ -756,6 +787,8 @@ async function openSpotlight(options?: { tip?: boolean }) {
       filtered = metadata;
       input.placeholder = 'Search entity...';
       input.value = '';
+      tip.textContent = 'Not seeing the entity you need? Try refreshing the metadata';
+      tip.style.display = 'block';
       renderPills();
       render();
       return;
@@ -799,13 +832,13 @@ async function openSpotlight(options?: { tip?: boolean }) {
           filtered = fetchResults;
           progress.style.display = 'none';
           list.style.display = '';
-          infoPanel.style.display = 'none';
-          input.style.display = '';
-          input.value = '';
+          infoPanel.style.display = 'block';
+          input.style.display = 'none';
           state = Step.FetchXml;
           render();
         }
       });
+      tip.style.display = 'none';
       return;
     } else if (cmd.id === 'entityInfoSpotlight') {
       state = Step.EntityInfoDisplay;
@@ -986,6 +1019,7 @@ async function openSpotlight(options?: { tip?: boolean }) {
       render();
       return;
     }
+    tip.style.display = 'none';
     closeSpotlight();
     chrome.runtime.sendMessage({ type: pref(cmd.id), category: cmd.category });
   }
@@ -997,6 +1031,7 @@ async function openSpotlight(options?: { tip?: boolean }) {
       window.removeEventListener('message', handleSpotlightMessage as EventListener);
       handleSpotlightMessage = null;
     }
+    document.removeEventListener('keydown', handleGlobalBackspace);
   };
 }
 

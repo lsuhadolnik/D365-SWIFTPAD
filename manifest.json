@@ -28,7 +28,8 @@
         "app/scripts/levelup.extension.js",
         "app/commands.json",
         "app/images/lp_ll.png",
-        "app/styles/spotlight.css"
+        "app/styles/spotlight.css",
+        "app/libraries/list.es.js"
       ],
       "matches": ["<all_urls>"]
     }
