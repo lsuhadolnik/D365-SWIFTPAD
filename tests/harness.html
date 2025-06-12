@@ -44,12 +44,19 @@
       const dist = params.get('dist');
       const loader = params.get('loader');
       const page = params.get('page') || 'record';
+      const cmdsParam = params.get('cmds');
+      let commandsData = null;
+      if (cmdsParam) {
+        try {
+          commandsData = JSON.parse(atob(cmdsParam));
+        } catch {}
+      }
       document.getElementById(page + '-page').style.display = 'block';
       window.recordedMessages = [];
       window.fetchLog = [];
       window.chrome = {
         runtime: {
-          getURL: (p) => dist + '/' + p,
+          getURL: (p) => 'file://' + dist + '/' + p,
           sendMessage: (msg, cb) => {
             window.recordedMessages.push(msg);
             if (cb) cb();
@@ -75,9 +82,13 @@
         scripting: { executeScript: () => {} },
         declarativeNetRequest: { updateDynamicRules: (r, cb) => cb && cb(), getDynamicRules: (cb) => cb([]) },
       };
+      const origFetch = window.fetch.bind(window);
       window.fetch = (input, init) => {
         const url = typeof input === 'string' ? input : input.url;
         window.fetchLog.push(url);
+        if (url.includes('commands.json') && commandsData) {
+          return Promise.resolve(new Response(JSON.stringify(commandsData)));
+        }
         if (url.includes('EntityDefinitions')) {
           return Promise.resolve(
             new Response(
@@ -97,10 +108,12 @@
         }
         if (url.includes('RetrieveCurrentOrganization')) {
           return Promise.resolve(
-            new Response(JSON.stringify({ Detail: { EnvironmentId: '1', FriendlyName: 'Test' } }))
+            new Response(
+              JSON.stringify({ Detail: { EnvironmentId: '1', FriendlyName: 'Test' } })
+            )
           );
         }
-        return Promise.resolve(new Response(JSON.stringify({ value: [] })));
+        return origFetch(input, init);
       };
       if (page === 'record') {
         window.Xrm = {

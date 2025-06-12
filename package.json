@@ -15,7 +15,7 @@
     "lint": "eslint \"app/**/*.ts\"",
     "pack": "npm run build",
     "pretest": "npm run build && node scripts/playwright-install.mjs",
-    "test": "xvfb-run -a playwright test"
+    "test": "playwright test"
   },
   "devDependencies": {
     "@crxjs/vite-plugin": "^2.0.0-beta.33",

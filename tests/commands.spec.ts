@@ -10,6 +10,9 @@ const distPath = path.resolve(__dirname, '../dist');
 const manifest = JSON.parse(fs.readFileSync(path.join(distPath, 'manifest.json'), 'utf-8'));
 const loader = manifest.content_scripts[0].js[0];
 const harness = path.resolve(__dirname, 'harness.html');
+const cmdsBase64 = Buffer.from(
+  fs.readFileSync(path.join(distPath, 'app/commands.json'), 'utf-8')
+).toString('base64');
 
 const gridCommands = new Set(['openGrid', 'quickFindFields', 'blurView', 'resetViewBlur', 'sendToFXB']);
 
@@ -34,7 +37,7 @@ test.describe('Commands', () => {
       const url =
         'file://' +
         harness +
-        `?dist=${encodeURIComponent(distPath)}&loader=${encodeURIComponent(loader)}&page=${targetPage}`;
+        `?dist=${encodeURIComponent(distPath)}&loader=${encodeURIComponent(loader)}&page=${targetPage}&cmds=${encodeURIComponent(cmdsBase64)}`;
       await page.goto(url);
       await page.waitForFunction(() => (window as any).pref !== undefined);
       await page.evaluate(() => window.dispatchEvent(new CustomEvent('openSpotlight')));
