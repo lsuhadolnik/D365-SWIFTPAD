@@ -16,3 +16,4 @@ packages/
 !.vscode/extensions.json
 !.vscode/tours/code-tour-of-level-up.json
 *~lock~
+test-results/

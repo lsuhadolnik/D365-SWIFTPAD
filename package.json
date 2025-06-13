@@ -13,20 +13,23 @@
     "build": "vite build",
     "postbuild": "rimraf app/scripts/levelup.extension.js app/scripts/grid.js app/scripts/organisationdetails.js app/scripts/processes.js app/scripts/userroles.js app/scripts/optionsets.js",
     "lint": "eslint \"app/**/*.ts\"",
-    "pack": "npm run build"
+    "pack": "npm run build",
+    "pretest": "npm run build && node scripts/playwright-install.mjs",
+    "test": "playwright test"
   },
   "devDependencies": {
     "@crxjs/vite-plugin": "^2.0.0-beta.33",
+    "@playwright/test": "^1.53.0",
     "@types/chrome": "^0.0.326",
     "@types/lodash": "^4.17.17",
     "@types/xrm": "^9.0.87",
     "@typescript-eslint/eslint-plugin": "^8.33.1",
     "@typescript-eslint/parser": "^8.33.1",
+    "esbuild": "^0.20.0",
     "eslint": "^9.28.0",
     "eslint-config-prettier": "^10.1.5",
     "eslint-plugin-prettier": "^5.4.1",
     "prettier": "^3.5.3",
-    "esbuild": "^0.20.0",
     "rimraf": "^5.0.5",
     "typescript": "^5.8.3",
     "vite": "^6.3.5"
