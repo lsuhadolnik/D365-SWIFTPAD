@@ -162,7 +162,10 @@ chrome.runtime.onMessage.addListener(async function (
 
     chrome.scripting.executeScript({
       target: { tabId: tab.id },
-      func: postExtensionMessageWithData,
+      func: (message: string, category: string, data: object) => {
+        console.log('postExtensionMessageWithData', { message, category, data });
+        window.postMessage({ type: message, category: category, content: data }, '*');
+      },
       args: [message.type.toString(), message.category.toString(), data],
     });
   } else {
@@ -172,7 +175,10 @@ chrome.runtime.onMessage.addListener(async function (
 
     chrome.scripting.executeScript({
       target: { tabId: tab.id },
-      func: postExtensionMessage,
+      func: (message: string, category: string) => {
+        console.log('postExtensionMessage', { message, category });
+        window.postMessage({ type: message, category: category }, '*');
+      },
       args: [message.type.toString(), message.category.toString()],
     });
   }
@@ -198,16 +204,6 @@ async function renderBadge(url?: string) {
       text: localSettingForEnv.userFullName,
     });
   }
-}
-
-function postExtensionMessage(message: string, category: string) {
-  console.log('postExtensionMessage', { message, category });
-  window.postMessage({ type: message, category: category }, '*');
-}
-
-function postExtensionMessageWithData(message: string, category: string, data: object) {
-  console.log('postExtensionMessageWithData', { message, category, data });
-  window.postMessage({ type: message, category: category, content: data }, '*');
 }
 
 chrome.action.onClicked.addListener((tab) => {
