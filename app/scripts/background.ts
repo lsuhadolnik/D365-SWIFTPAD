@@ -204,11 +204,11 @@ async function renderBadge(url?: string) {
 }
 
 function postExtensionMessage(message: string, category: string) {
-  window.postMessage({ type: pref(message), category: category }, '*');
+  window.postMessage({ type: (window as any).pref(message), category }, '*');
 }
 
 function postExtensionMessageWithData(message: string, category: string, data: object) {
-  window.postMessage({ type: pref(message), category: category, content: data }, '*');
+  window.postMessage({ type: (window as any).pref(message), category, content: data }, '*');
 }
 
 chrome.action.onClicked.addListener((tab) => {
