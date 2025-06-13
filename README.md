@@ -51,6 +51,10 @@ Lint and format the TypeScript sources with:
 $ npm run lint
 ```
 
+## Tests
+
+Run `npm test` to execute the Playwright browser tests. The suite currently covers only a few sample workflows and serves as a stub for future expansion.
+
 ## Globals
 
 The build tool also defines a variable named `process.env.NODE_ENV` in your scripts. It will be set to `development` unless you use the `--production` option.

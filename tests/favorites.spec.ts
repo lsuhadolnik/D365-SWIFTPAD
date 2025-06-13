@@ -1,6 +1,10 @@
 import { test, expect } from '@playwright/test';
 import { harnessUrl } from './utils';
 
+// Workflow:
+// 1. Add the "Logical Names" command to favorites.
+// 2. Reopen Spotlight to confirm it appears.
+// 3. Reload the page and verify the favorite persists.
 test('Favorites add and persist', async ({ page }) => {
   const url = harnessUrl({ page: 'record', test: 'favs' });
   await page.goto(url);

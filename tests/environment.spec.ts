@@ -1,6 +1,9 @@
 import { test, expect } from '@playwright/test';
 import { harnessUrl } from './utils';
 
+// Workflow:
+// 1. Run the "Environment Details" command.
+// 2. Copy information using the copy button and ensure text was captured.
 test('Environment details copy', async ({ page }) => {
   const url = harnessUrl({ page: 'record', test: 'env details' });
   await page.goto(url);

@@ -1,6 +1,9 @@
 import { test, expect } from '@playwright/test';
 import { harnessUrl } from './utils';
 
+// Workflow:
+// 1. Activate the "Auto Reload" command.
+// 2. Confirm the toast is visible then close it.
 test('Auto reload toast appears and closes', async ({ page }) => {
   const url = harnessUrl({ page: 'record', test: 'autoreload' });
   await page.goto(url);

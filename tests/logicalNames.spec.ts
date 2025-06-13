@@ -1,6 +1,10 @@
 import { test, expect } from '@playwright/test';
 import { harnessUrl } from './utils';
 
+// Workflow:
+// 1. Run "Logical Names" and verify helper labels show.
+// 2. Copy a label to the clipboard.
+// 3. Execute "Clear Logical names" to remove the labels.
 test('Logical names and clearing', async ({ page }) => {
   const url = harnessUrl({ page: 'record', test: 'logical names' });
   await page.goto(url);

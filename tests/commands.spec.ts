@@ -10,9 +10,7 @@ const distPath = path.resolve(__dirname, '../dist');
 const manifest = JSON.parse(fs.readFileSync(path.join(distPath, 'manifest.json'), 'utf-8'));
 const loader = manifest.content_scripts[0].js[0];
 const harness = path.resolve(__dirname, 'harness.html');
-const cmdsBase64 = Buffer.from(
-  fs.readFileSync(path.join(distPath, 'app/commands.json'), 'utf-8')
-).toString('base64');
+const cmdsBase64 = Buffer.from(fs.readFileSync(path.join(distPath, 'app/commands.json'), 'utf-8')).toString('base64');
 
 const gridCommands = new Set(['openGrid', 'quickFindFields', 'blurView', 'resetViewBlur', 'sendToFXB']);
 
@@ -34,6 +32,10 @@ const special = new Set([
   'perfCenter',
 ]);
 
+// Workflow:
+// 1. Load the harness page in record or grid mode based on the command.
+// 2. Trigger Spotlight and search for the command by title.
+// 3. Execute the command and assert either a runtime message or a UI effect.
 test.describe('Commands', () => {
   for (const cmd of commands as { id: string; title: string; category: string }[]) {
     test(cmd.id, async ({ page }) => {
@@ -74,6 +76,9 @@ test.describe('Commands', () => {
             await page.waitForFunction(() =>
               (window as any).fetchLog.some((u: string) => u.includes('EntityDefinitions'))
             );
+            break;
+          case 'perfCenter':
+            await page.waitForFunction(() => location.href.includes('perf=true'));
             break;
           default:
             // ensure no error

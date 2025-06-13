@@ -1,6 +1,9 @@
 import { test, expect } from '@playwright/test';
 import { harnessUrl } from './utils';
 
+// Workflow:
+// 1. Use the "Quick open" command to choose an entity.
+// 2. Select a record by GUID and verify a runtime message was sent.
 test('Quick open list and record', async ({ page }) => {
   const url = harnessUrl({ page: 'record', test: 'quick open' });
   await page.goto(url);
@@ -22,6 +25,9 @@ test('Quick open list and record', async ({ page }) => {
   expect(messages.some((m: any) => m.type && m.type.includes('openRecordQuick'))).toBeTruthy();
 });
 
+// Workflow:
+// 1. Trigger "Open List" and search for an entity.
+// 2. Validate the first suggestion shows the correct entity.
 test('Quick open list last', async ({ page }) => {
   const url = harnessUrl({ page: 'record', test: 'quick open list' });
   await page.goto(url);

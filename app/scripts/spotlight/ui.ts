@@ -40,6 +40,7 @@ const categoryIcons: Record<string, string> = {
 };
 
 let handleSpotlightMessage: ((message: any) => void) | null = null;
+let handleExecCmd: ((ev: CustomEvent) => void) | null = null;
 let spotlightCleanup: (() => void) | null = null;
 let fetchResults: { id: string; name: string }[] = [];
 let fetchEntity = '';
@@ -69,6 +70,14 @@ export function initSpotlight() {
       if (!document.getElementById('dl-spotlight-backdrop')) {
         await openSpotlight();
       }
+    } else if ((e.ctrlKey || e.metaKey) && !e.shiftKey && e.code === 'KeyP') {
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      if (!document.getElementById('dl-spotlight-backdrop')) {
+        await openSpotlight({ command: 'openRecordSpotlight' });
+      } else {
+        window.dispatchEvent(new CustomEvent('execCmd', { detail: 'openRecordSpotlight' }));
+      }
     } else if (e.key === 'Escape') {
       closeSpotlight();
     }
@@ -94,7 +103,7 @@ function currentEntityFromUrl(): string | null {
   return ent;
 }
 
-async function openSpotlight(options?: { tip?: boolean }) {
+async function openSpotlight(options?: { tip?: boolean; command?: string }) {
   const backdrop = document.createElement('div');
   backdrop.id = 'dl-spotlight-backdrop';
   const container = document.createElement('div');
@@ -711,6 +720,10 @@ async function openSpotlight(options?: { tip?: boolean }) {
       window.removeEventListener('message', handleSpotlightMessage as EventListener);
       handleSpotlightMessage = null;
     }
+    if (handleExecCmd) {
+      window.removeEventListener('execCmd', handleExecCmd as EventListener);
+      handleExecCmd = null;
+    }
   };
 
   handleSpotlightMessage = function (rawMessage: any) {
@@ -758,6 +771,11 @@ async function openSpotlight(options?: { tip?: boolean }) {
   };
 
   window.addEventListener('message', handleSpotlightMessage);
+  handleExecCmd = (ev: CustomEvent) => {
+    const cmd = commands.find((c) => c.id === ev.detail);
+    if (cmd) void executeCommand(cmd);
+  };
+  window.addEventListener('execCmd', handleExecCmd as EventListener);
 
   async function executeCommand(cmd: Command) {
     favWrap.style.display = 'none';
@@ -1040,10 +1058,19 @@ async function openSpotlight(options?: { tip?: boolean }) {
 
   render();
 
+  if (options?.command) {
+    const cmd = commands.find((c) => c.id === options.command);
+    if (cmd) await executeCommand(cmd);
+  }
+
   spotlightCleanup = () => {
     if (handleSpotlightMessage) {
       window.removeEventListener('message', handleSpotlightMessage as EventListener);
       handleSpotlightMessage = null;
+    }
+    if (handleExecCmd) {
+      window.removeEventListener('execCmd', handleExecCmd as EventListener);
+      handleExecCmd = null;
     }
     document.removeEventListener('keydown', handleGlobalBackspace);
   };
@@ -1058,7 +1085,7 @@ export function closeSpotlight() {
 
 // Allow other parts of the extension to programmatically open spotlight
 window.addEventListener('openSpotlight', async (e) => {
-  const detail = (e as CustomEvent).detail as { tip?: boolean } | undefined;
+  const detail = (e as CustomEvent).detail as { tip?: boolean; command?: string } | undefined;
   if (!document.getElementById('dl-spotlight-backdrop')) {
     await openSpotlight(detail);
   }
