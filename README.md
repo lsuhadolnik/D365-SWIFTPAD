@@ -1,5 +1,14 @@
 ![Swiftpad Promo](/screenshots/promo.png)
 
+## 🎉 Now on Chrome Web Store! 🎉 
+
+|Browser|Download link|
+|-------|-------------|
+|Chrome|[Download on Chrome Web Store](https://chromewebstore.google.com/detail/d365-swiftpad/mjgemoioddodmmbijccpbdjiefckameb)|
+|Edge|Coming soon!|
+
+For the latest, most up-to-date version, download a ZIP from Releases - see instructions below. 👇
+
 ## Summary
 
 D365-Swiftpad is a productivity extension for Dynamics 365 and Power Apps - Just hit `Ctrl+Shift+P` and have all your favourite Power User commands just a few keystrokes away.
@@ -16,11 +25,12 @@ Docs for users hopefully coming soon :)
 [![Youtube video about this](/screenshots/play.png)](https://youtu.be/tbWOcU_YtyM)
 
 
-
 ## Notice: Does not work with On-Prem Dynamics CRM.
 And there's no plan at the moment to support this.
 
 ## Installation
+
+The easiest way to download it is through Chrome Web Store / other stores - see the links above. If you want the latest and greatest version, check out the following instructions.
 
 Download the latest build from this repository's [releases](https://github.com/lsuhadolnik/D365-SWIFTPAD/releases) page and unzip it.
 Then:
@@ -31,7 +41,6 @@ Then:
 - Point to this folder
 
 Then open Dynamics CRM and press `Ctrl+Shift+P`.
-
 
 Or build it from source...
 
@@ -55,22 +64,6 @@ $ npm run lint
 
 Run `npm test` to execute the Playwright browser tests. The suite currently covers only a few sample workflows and serves as a stub for future expansion.
 
-## Globals
-
-The build tool also defines a variable named `process.env.NODE_ENV` in your scripts. It will be set to `development` unless you use the `--production` option.
-
-**Example:** `./app/background.js`
-
-```javascript
-if (process.env.NODE_ENV === 'development') {
-  console.log('We are in development mode!');
-}
-```
-
-### Troubleshooting
-
-If `npm run build` fails with an error like `Cannot find module '...safer-buffer/safer.js'`,
-make sure you ran `npm install` before building.
 
 ## Credits
 
