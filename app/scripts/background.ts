@@ -150,7 +150,7 @@ chrome.runtime.onMessage.addListener(async function (
       default:
         break;
     }
-  } else if (message.type === 'reset') {
+  } else if (type === 'reset') {
     chrome.declarativeNetRequest.getDynamicRules((rules) => {
       const ruleIds = rules.map((x) => x.id);
       chrome.declarativeNetRequest.updateDynamicRules({
